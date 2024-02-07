@@ -1,10 +1,10 @@
+#ifndef __RIFF_CPP_INCLUDED__
+#define __RIFF_CPP_INCLUDED__
+
 #include "riff.hpp"
 
 
 namespace RIFF {
-
-#ifndef __RIFF_CPP_INCLUDED__
-#define __RIFF_CPP_INCLUDED__
 
 #pragma region condes
 
@@ -386,7 +386,6 @@ void RIFFWriter::writeNewChunk (void * data, size_t size, char * id){
 
 #pragma endregion
 
-}
-
+}   // namespace RIFF
 
 #endif  // __RIFF_CPP_INCLUDED__
