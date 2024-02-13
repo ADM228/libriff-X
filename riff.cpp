@@ -186,8 +186,8 @@ RIFFWriter::RIFFWriter() {
 }
 
 RIFFWriter::~RIFFWriter() {
-    riff_writerFree(rw);
     close();
+    riff_writerFree(rw);
 }
 #pragma endregion
 
