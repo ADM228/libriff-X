@@ -107,11 +107,11 @@ size_t seek_mem(riff_handle *rh, size_t pos){
 
 /*****************************************************************************/
 //description: see header file
-int riff_open_mem(riff_handle *rh, void *ptr, size_t size){
+int riff_open_mem(riff_handle *rh, const void *ptr, size_t size){
 	if(rh == NULL)
 		return RIFF_ERROR_INVALID_HANDLE;
 	
-	rh->fh = ptr;
+	rh->fh = (void *)ptr;
 	rh->size = size;
 	//rh->pos_start = 0 //redundant -> passed memory pointer is always expected to point to start of riff file
 	
@@ -129,8 +129,8 @@ int riff_open_mem(riff_handle *rh, void *ptr, size_t size){
 
 /*****************************************************************************/
 //pass pointer to 32 bit LE value and convert, return in native byte order
-unsigned int convUInt32LE(void *p){
-	unsigned char *c = (unsigned char*)p;
+unsigned int convUInt32LE(const void *p){
+	const unsigned char *c = (const unsigned char*)p;
 	return c[0] | (c[1] << 8) | (c[2] << 16) | (c[3] << 24);
 }
 
@@ -230,7 +230,7 @@ void stack_pop(riff_handle *rh){
 
 /*****************************************************************************/
 //push to level stack
-void stack_push(riff_handle *rh, char *type){
+void stack_push(riff_handle *rh, const char *type){
 	//need to enlarge stack?
 	if(rh->ls_size < rh->ls_level + 1){
 		size_t ls_size_new = rh->ls_size * 2; //double size

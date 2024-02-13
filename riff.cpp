@@ -46,7 +46,7 @@ int RIFFFile::open (std::FILE & __file, size_t __size) {
 
 #pragma region openMem 
 
-int RIFFFile::open (void * __mem_ptr, size_t __size) {
+int RIFFFile::open (const void * __mem_ptr, size_t __size) {
     file = nullptr;
     type = MEM_PTR;
     return riff_open_mem(rh, __mem_ptr, __size);

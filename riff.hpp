@@ -62,7 +62,7 @@ class RIFFFile {
          * @param size The expected size of the data, leave at 0 (or don't specify) if unknown
          * @return Error code
          */
-        int open(void * __mem_ptr, size_t __size = 0);
+        int open(const void * __mem_ptr, size_t __size = 0);
 
         /**
          * @brief Open a RIFF file with the filename and mode provided
@@ -95,7 +95,7 @@ class RIFFFile {
          * @param size Amount of data to read
          * @return size_t Amount of data read successfully
          */
-        inline size_t readInChunk (void *to, size_t size) {return riff_readInChunk(rh, to, size);};
+        inline size_t readInChunk (void * to, size_t size) {return riff_readInChunk(rh, to, size);};
         /**
          * @brief Read current chunk's data
          * @note Returns nullptr if an error occurred

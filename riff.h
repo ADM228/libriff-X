@@ -215,12 +215,12 @@ int riff_readHeader(riff_handle *rh);
 //file position must be at the start of RIFF file, which can be nested in another file (file pos > 0)
 //Since the file was opened by the user, it must be closed by the user.
 //size: must be exact if > 0, pass 0 for unknown size (the correct size helps to identify file corruption)
-int riff_open_file(riff_handle *h, FILE *f, size_t size);
+int riff_open_file(riff_handle *rh, FILE *f, size_t size);
 
 //create and return initialized RIFF handle, FPs are set up to default for memory access
 //If memory was allocated by the user, it must be deallocated by the user after use.
 //size: must be > 0
-int riff_open_mem(riff_handle *h, void *memptr, size_t size);
+int riff_open_mem(riff_handle *rh, const void *memptr, size_t size);
 
 
 //user open - must handle "riff_handle" allocation and setup
