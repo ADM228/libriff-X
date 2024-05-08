@@ -141,19 +141,16 @@ std::string RIFFFile::errorToString (int errorCode) {
     return outstring;
 }
 
-std::vector<uint8_t> * RIFFFile::readChunkData() {
+std::vector<uint8_t> RIFFFile::readChunkData() {
     int errCode;
     errCode = seekChunkStart(); 
-    if (errCode) {
-        return nullptr;
+    if (errCode || rh->c_size == 0) {
+        return std::vector<uint8_t>(0);
     }
-    if (rh->c_size == 0) {
-        return new std::vector<uint8_t>(0);
-    }
-    auto outVec = new std::vector<uint8_t>(rh->c_size);
+    auto outVec = std::vector<uint8_t>(rh->c_size);
     size_t totalSize = 0, succSize;
     do {
-        succSize = readInChunk(outVec->data()+totalSize, rh->c_size);
+        succSize = readInChunk(outVec.data()+totalSize, rh->c_size);
         totalSize += succSize;
     } while (succSize != 0);
 #if RIFF_PRINT_ERRORS

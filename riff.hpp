@@ -102,7 +102,7 @@ class RIFFFile {
          * 
          * @return std::vector<uint8_t> with the data
          */
-        std::vector<uint8_t> * readChunkData ();
+        std::vector<uint8_t> readChunkData ();
         /**
          * @brief Seek in current chunk
          * @note Returns RIFF_ERROR_EOC if end of chunk is reached
