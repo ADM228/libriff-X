@@ -171,7 +171,7 @@ void riff_writer_close_file(riff_writer *rw) {
 	int errCode = riff_writeHeader(rw); 
 	if (errCode) {
 		if (rw->fp_printf)
-			rw->fp_printf(riff_writer_errorToString(errCode));
+			rw->fp_printf(riff_writerErrorToString(errCode));
 	}
 
 	return;
@@ -249,14 +249,14 @@ void * riff_writer_close_mem(riff_writer *rw){
 
 	if (rw == NULL){
 		if (rw->fp_printf)
-			rw->fp_printf(riff_writer_errorToString(RIFF_ERROR_INVALID_HANDLE));
+			rw->fp_printf(riff_writerErrorToString(RIFF_ERROR_INVALID_HANDLE));
 		return NULL;
 	}
 
 	int errCode = riff_writeHeader(rw);
 	if (errCode) {
 		if (rw->fp_printf)
-			rw->fp_printf(riff_writer_errorToString(errCode));
+			rw->fp_printf(riff_writerErrorToString(errCode));
 		return NULL;
 	}
 
