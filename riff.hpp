@@ -7,8 +7,8 @@
     The C++ libriff wrapper is a memory-safe, class-based wrapper around the C-based libriff. It adds support for std::ifstream/ofstream, automatic allocation of filestreams (both C-based and if/ofstream) from filenames/filepaths, as well as some additional functions for reading/writing entire chunks at once and setting chunk types/IDs.
 */
 
-#ifndef __RIFF_HEADER_INCLUDED__
-#define __RIFF_HEADER_INCLUDED__
+#ifndef __RIFF_HPP__
+#define __RIFF_HPP__
 
 #include <cstring>
 #include <iostream>
@@ -369,4 +369,4 @@ class RIFFWriter {
 
 }       // namespace RIFF
 
-#endif  // __RIFF_HEADER_INCLUDED__
+#endif  // __RIFF_HPP__

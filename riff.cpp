@@ -1,5 +1,5 @@
-#ifndef __RIFF_CPP_INCLUDED__
-#define __RIFF_CPP_INCLUDED__
+#ifndef __RIFF_CPP__
+#define __RIFF_CPP__
 
 #include "riff.hpp"
 
@@ -384,4 +384,4 @@ void RIFFWriter::writeNewChunk (const void * data, size_t size, const char * id)
 
 }   // namespace RIFF
 
-#endif  // __RIFF_CPP_INCLUDED__
+#endif  // __RIFF_CPP__
