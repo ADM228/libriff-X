@@ -38,4 +38,5 @@ libriff.a
 test*.bat
 
 .vscode
+build
 

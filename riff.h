@@ -281,10 +281,10 @@ int riff_readerLevelValidate(struct riff_reader *rr);
 
 //return string to error code
 //the current position (h->pos) tells you where in the file the problem occured
-const char *riff_reader_errorToString(int e);
+const char *riff_readerErrorToString(int e);
 
 //return string to error code (for writer)
-const char *riff_writer_errorToString(int e);
+const char *riff_writerErrorToString(int e);
 
 
 //TODO:

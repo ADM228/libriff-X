@@ -1055,7 +1055,7 @@ int riff_readerLevelValidate(struct riff_reader *rr){
 
 /*****************************************************************************/
 //description: see header file
-const char *riff_reader_errorToString(int e){
+const char *riff_readerErrorToString(int e){
 	//map error to error string
 	//Make sure mapping is correct!
 	return riff_reader_es[e > RIFF_ERROR_UNKNOWN ? RIFF_ERROR_UNKNOWN : e];
@@ -1064,7 +1064,7 @@ const char *riff_reader_errorToString(int e){
 #ifdef RIFF_WRITE
 
 //description: see header file
-const char *riff_writer_errorToString(int e){
+const char *riff_writerErrorToString(int e){
 	//map error to error string
 	//Make sure mapping is correct!
 	return riff_writer_es[e > RIFF_ERROR_UNKNOWN ? RIFF_ERROR_UNKNOWN : e];
