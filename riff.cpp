@@ -123,11 +123,6 @@ int RIFFReader::openIfstreamCommon(){
 
 #pragma endregion
 
-void RIFFWriter::close(const char * filetype) {
-    setFileType(filetype);
-    close();
-}
-
 void RIFFReader::close () {
     if (!(type & MANUAL)) { // Must be automatically allocated to close
         if (type == C_FILE) {
@@ -142,7 +137,7 @@ void RIFFReader::close () {
 }
 
 std::string RIFFReader::errorToString (int errorCode) {
-    std::string errorString(riff_reader_errorToString(errorCode));
+    std::string errorString(riff_readerErrorToString(errorCode));
     char buffer[2+2+(2*sizeof(size_t))+1];
     std::snprintf(buffer, 19, "[0x%zX]", rr->pos);
     std::string outstring (buffer);
@@ -301,7 +296,7 @@ void RIFFWriter::closeOfstream() {
 	int errCode = riff_writeHeader(rw); 
 	if (errCode) {
 		if (rw->fp_printf)
-			rw->fp_printf(riff_writer_errorToString(errCode));
+			rw->fp_printf(riff_writerErrorToString(errCode));
 	}
 
 	return;
@@ -331,9 +326,13 @@ void RIFFWriter::close () {
     type = CLOSED;
 }
 
+void RIFFWriter::close(const char * filetype) {
+    setFileType(filetype);
+    close();
+}
 
 std::string RIFFWriter::errorToString (int errorCode) {
-    std::string errorString(riff_writer_errorToString(errorCode));
+    std::string errorString(riff_writerErrorToString(errorCode));
     char buffer[2+2+(2*sizeof(size_t))+1];
     std::snprintf(buffer, 19, "[0x%zX]", rw->pos);
     std::string outstring (buffer);
