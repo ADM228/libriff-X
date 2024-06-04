@@ -19,14 +19,11 @@ extern "C" {
 }
 #include <fstream>
 #include <vector>
+#if RIFF_CXX17_SUPPORT
 #include <filesystem>
+#endif
 
 namespace RIFF {
-
-// Set the define RIFF_PRINT_ERRORS to 0 to disable printing of errors.
-#ifndef RIFF_PRINT_ERRORS
-#define RIFF_PRINT_ERRORS 1
-#endif
 
 enum fileTypes : int {
     C_FILE      = 0,
@@ -52,8 +49,10 @@ class RIFFReader {
         int open(const char* __filename, const char * __mode, size_t __size = 0);
         inline int open(const std::string& __filename, const char * __mode, size_t __size = 0) 
             {return open(__filename.c_str(), __mode, __size);};
+        #if RIFF_CXX17_SUPPORT
         inline int open(const std::filesystem::path& __filename, const char * __mode, size_t __size = 0)
             {return open(__filename.c_str(), __mode, __size);};
+        #endif
 
         /**
          * @brief Get RIFF data from a memory pointer
@@ -73,7 +72,9 @@ class RIFFReader {
          */
         int open(const char* __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
         int open(const std::string& __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
+        #if RIFF_CXX17_SUPPORT
         int open(const std::filesystem::path& __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
+        #endif
 
         /**
          * @brief Open a RIFF file from an existing file object
@@ -199,8 +200,10 @@ class RIFFWriter {
         int open(const char* __filename, const char * __mode);
         inline int open(const std::string& __filename, const char * __mode) 
             {return open(__filename.c_str(), __mode);};
+        #if RIFF_CXX17_SUPPORT
         inline int open(const std::filesystem::path& __filename, const char * __mode)
             {return open(__filename.c_str(), __mode);};
+        #endif
 
         /**
          * @brief Get RIFF data from a memory pointer
@@ -220,7 +223,9 @@ class RIFFWriter {
          */
         int open(const char* __filename, std::ios_base::openmode __mode = std::ios_base::in);
         int open(const std::string& __filename, std::ios_base::openmode __mode = std::ios_base::in);
+        #if RIFF_CXX17_SUPPORT
         int open(const std::filesystem::path& __filename, std::ios_base::openmode __mode = std::ios_base::in);
+        #endif
 
         /**
          * @brief Open a RIFF file from an existing file object

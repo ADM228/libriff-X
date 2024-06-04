@@ -10,7 +10,7 @@ namespace RIFF {
 
 RIFFReader::RIFFReader() {
     rr = riff_readerAllocate();
-    #if !RIFF_PRINT_ERRORS
+    #if !RIFF_CXX_PRINT_ERRORS
         rr->fp_printf = NULL;
     #endif
 }
@@ -88,12 +88,14 @@ int RIFFReader::open(const std::string & __filename, std::ios_base::openmode __m
     return openIfstreamCommon();
 }
 
+#if RIFF_CXX17_SUPPORT
 int RIFFReader::open(const std::filesystem::path & __filename, std::ios_base::openmode __mode, size_t __size) {
     // Set type
     setAutomaticIfstream();
     ((std::ifstream*)file)->open(__filename, __mode|std::ios_base::binary);
     return openIfstreamCommon();
 }
+#endif
 
 void RIFFReader::setAutomaticIfstream(){
     type = FSTREAM;
@@ -157,7 +159,7 @@ std::vector<uint8_t> RIFFReader::readChunkData() {
         succSize = readInChunk(outVec.data()+totalSize, rr->c_size);
         totalSize += succSize;
     } while (succSize != 0);
-#if RIFF_PRINT_ERRORS
+#if RIFF_CXX_PRINT_ERRORS
     if (totalSize != rr->c_size && rr->fp_printf) {
         rr->fp_printf("Couldn't read the entire chunk for some reason. Successfully read %zu bytes out of %zu\n", totalSize, rr->c_size);
     } 
@@ -172,8 +174,8 @@ std::vector<uint8_t> RIFFReader::readChunkData() {
 #pragma region condes
 RIFFWriter::RIFFWriter() {
     rw = riff_writerAllocate();
-    #if !RIFF_PRINT_ERRORS
-        rr->fp_printf = NULL;
+    #if !RIFF_CXX_PRINT_ERRORS
+        rw->fp_printf = NULL;
     #endif
 }
 
@@ -249,12 +251,14 @@ int RIFFWriter::open(const std::string & __filename, std::ios_base::openmode __m
     return openOfstreamCommon();
 }
 
+#if RIFF_CXX17_SUPPORT
 int RIFFWriter::open(const std::filesystem::path & __filename, std::ios_base::openmode __mode) {
     // Set type
     setAutomaticOfstream();
     ((std::fstream*)file)->open(__filename, __mode|std::ios_base::binary);
     return openOfstreamCommon();
 }
+#endif
 
 void RIFFWriter::setAutomaticOfstream(){
     type = FSTREAM;
