@@ -13,7 +13,7 @@ if (RIFF_WRITE)
 	target_compile_definitions(riff PUBLIC RIFF_WRITE)
 endif()
 if (RIFF_CXX_WRAPPER)
-	target_sources(riff PRIVATE "riff.c" "riff.cpp")
+	target_sources(riff PRIVATE "riff.cpp")
 	target_compile_features(riff PUBLIC cxx_std_11)	# required for e.g. std::ios_base
 	if (RIFF_CXX_STD_FILESYSTEM_PATH)
 		target_compile_features(riff PUBLIC cxx_std_17)
