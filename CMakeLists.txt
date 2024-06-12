@@ -19,3 +19,7 @@ if (RIFF_CXX_WRAPPER)
 		target_compile_definitions(riff PRIVATE RIFF_CXX_PRINT_ERRORS=1)
 	endif()
 endif()
+
+# examples and stuff
+add_executable(example EXCLUDE_FROM_ALL example.c)
+target_link_libraries(example PRIVATE riff)
