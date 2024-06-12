@@ -21,5 +21,9 @@ if (RIFF_CXX_WRAPPER)
 endif()
 
 # examples and stuff
-add_executable(example EXCLUDE_FROM_ALL example.c)
+add_executable(example EXCLUDE_FROM_ALL examples/example.c)
 target_link_libraries(example PRIVATE riff)
+if (RIFF_CXX_WRAPPER)
+	add_executable(cxx_example EXCLUDE_FROM_ALL examples/example.cpp)
+	target_link_libraries(cxx_example PRIVATE riff)
+endif()

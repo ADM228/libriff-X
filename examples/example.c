@@ -26,12 +26,12 @@ void test_traverse_rec(riff_handle *rh){
 	//identation for pretty output
 	strcpy(indent, "");
 	for(int i = 0; i < rh->ls_level; i++)
-		sprintf(indent, "%s ", indent);
+		snprintf(indent, sizeof(indent), "%s ", indent);
 	
 	if(rh->ls_level == 0) {
 		printf("CHUNK_ID: TOTAL_CHUNK_SIZE [CHUNK_DATA_FROM_TO_POS]\n");
 		//output RIFF file header
-		printf("%s%s: %d [%d..%d]\n", indent, rh->h_id, rh->h_size, rh->pos_start, rh->pos_start + rh->size);
+		printf("%s%s: %zu [%zu..%zu]\n", indent, rh->h_id, rh->h_size, rh->pos_start, rh->pos_start + rh->size);
 		printf(" %sType: %s\n", indent, rh->h_type);
 	}
 	else {
@@ -41,15 +41,15 @@ void test_traverse_rec(riff_handle *rh){
 		printf(" %sType: %s\n", indent, ls->c_type);
 	}
 	
-	strcat(indent, " ");
+	strncat(indent, " ", sizeof(indent) - strlen(indent) - 1);
 	
 	int k = 0;
 	
 	while(1){
-		printf("%s%s: %d [%d..%d]\n", indent, rh->c_id, rh->c_size, rh->c_pos_start,  rh->c_pos_start + 8 + rh->c_size + rh->pad - 1);
+		printf("%s%s: %zu [%zu..%zu]\n", indent, rh->c_id, rh->c_size, rh->c_pos_start,  rh->c_pos_start + 8 + rh->c_size + rh->pad - 1);
 		
 		//if current chunk not a chunk list
-		if(strcmp(rh->c_id, "LIST") != 0  &&  strcmp(rh->c_id, "RIFF") != 0){
+		if(strncmp(rh->c_id, "LIST", 5) != 0  &&  strncmp(rh->c_id, "RIFF", 5) != 0){
 		}
 		else {
 			//getchar(); //uncomment to press ENTER to continue after a printed chunk
@@ -113,7 +113,7 @@ void test(FILE *f){
 	
 	//current list level
 	printf("\n");
-	printf("Current pos: %d\n", rh->pos);
+	printf("Current pos: %zu\n", rh->pos);
 	printf("Current list level: %d\n", rh->ls_level);
 	
 	
@@ -122,7 +122,7 @@ void test(FILE *f){
 	char buf[1];
 	r = riff_readInChunk(rh, buf, 1);
 	printf("Bytes read: %d of %d\n", r, 1);
-	printf("Current pos: %d\n", rh->pos);
+	printf("Current pos: %zu\n", rh->pos);
 	printf("Current list level: %d\n", rh->ls_level);
 	
 	
@@ -130,8 +130,8 @@ void test(FILE *f){
 	r = riff_seekInChunk(rh, rh->c_pos + 1);
 	if(r != RIFF_ERROR_NONE)
 		printf("Seek failed!\n");
-	printf("Current pos: %d\n", rh->pos);
-	printf("Offset in current chunk data: %d\n", rh->c_pos);
+	printf("Current pos: %zu\n", rh->pos);
+	printf("Offset in current chunk data: %zu\n", rh->c_pos);
 	printf("Current list level: %d\n", rh->ls_level);
 	
 	
@@ -140,7 +140,7 @@ void test(FILE *f){
 		r = riff_rewind(rh);
 	if(r != RIFF_ERROR_NONE)
 		printf("Error: %s\n", riff_errorToString(r));
-	printf("Current pos: %d (expected: %d)\n", rh->pos, rh->pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET);
+	printf("Current pos: %zu (expected: %zu)\n", rh->pos, rh->pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET);
 	printf("Current list level: %d\n", rh->ls_level);
 	
 	
