@@ -43,6 +43,8 @@ May not work for RIFF files larger than 2GB.
 #ifndef _RIFF_H_
 #define _RIFF_H_
 
+#include <stddef.h>
+#include <stdio.h>
 
 
 #define RIFF_HEADER_SIZE  12      //size of RIFF file header and RIFF/LIST chunks that contain subchunks
