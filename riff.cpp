@@ -1,5 +1,5 @@
-#ifndef __RIFF_CPP_INCLUDED__
-#define __RIFF_CPP_INCLUDED__
+#ifndef __RIFF_CPP__
+#define __RIFF_CPP__
 
 #include "riff.hpp"
 
@@ -10,7 +10,7 @@ namespace RIFF {
 
 RIFFFile::RIFFFile() {
     rh = riff_handleAllocate();
-    #if !RIFF_PRINT_ERRORS
+    #if !RIFF_CXX_PRINT_ERRORS
         rh->fp_printf = NULL;
     #endif
 }
@@ -84,12 +84,14 @@ int RIFFFile::open(const std::string & __filename, std::ios_base::openmode __mod
     return openFstreamCommon();
 }
 
+#if RIFF_CXX17_SUPPORT
 int RIFFFile::open(const std::filesystem::path & __filename, std::ios_base::openmode __mode, size_t __size) {
     // Set type
     setAutomaticfstream();
     ((std::fstream*)file)->open(__filename, __mode|std::ios_base::binary);
     return openFstreamCommon();
 }
+#endif
 
 void RIFFFile::setAutomaticfstream(){
     type = FSTREAM;
@@ -153,7 +155,7 @@ std::vector<uint8_t> RIFFFile::readChunkData() {
         succSize = readInChunk(outVec.data()+totalSize, rh->c_size);
         totalSize += succSize;
     } while (succSize != 0);
-#if RIFF_PRINT_ERRORS
+#if RIFF_CXX_PRINT_ERRORS
     if (totalSize != rh->c_size && rh->fp_printf) {
         rh->fp_printf("Couldn't read the entire chunk for some reason. Successfully read %zu bytes out of %zu\n", totalSize, rh->c_size);
     } 
@@ -163,4 +165,4 @@ std::vector<uint8_t> RIFFFile::readChunkData() {
 
 }   // namespace RIFF
 
-#endif  // __RIFF_CPP_INCLUDED__
+#endif  // __RIFF_CPP__

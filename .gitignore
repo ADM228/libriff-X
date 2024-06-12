@@ -38,5 +38,5 @@ libriff.a
 test*.bat
 
 .vscode
+.cache
 build
-

@@ -1,10 +1,21 @@
+cmake_minimum_required(VERSION 3.13)
 project(riff LANGUAGES C CXX)
 
 option(RIFF_CXX_WRAPPER "If set to TRUE, will enable the C++ wrapper for libriff. Default is FALSE." FALSE)
+option(RIFF_CXX_STD_FILESYSTEM_PATH "If set to TRUE, will enable support for std::filesystem::path arguments in the C++ wrapper for libriff. It is a C++17 feature and requires C++17 support in the host program, otherwise it only requires C++11. Does nothing without RIFF_CXX_WRAPPER set. Default is TRUE." TRUE)
+option(RIFF_CXX_PRINT_ERRORS "If set to TRUE, will enable printing error messages to stdout from the C++ wrapper. Default is TRUE." TRUE)
 
-add_library(riff "${CMAKE_CURRENT_SOURCE_DIR}/riff.c")
+add_library(riff "riff.c")
 target_include_directories(riff PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_compile_features(riff PRIVATE c_std_99)
 if (RIFF_CXX_WRAPPER)
-	target_sources(riff "${CMAKE_CURRENT_SOURCE_DIR}/riff.c" "${CMAKE_CURRENT_SOURCE_DIR}/riff.cpp")
+	target_sources(riff PRIVATE "riff.cpp")
+	target_compile_features(riff PUBLIC cxx_std_11)	# required for e.g. std::ios_base
+	if (RIFF_CXX_STD_FILESYSTEM_PATH)
+		target_compile_features(riff PUBLIC cxx_std_17)
+		target_compile_definitions(riff PUBLIC RIFF_CXX17_SUPPORT=1)
+	endif()
+	if (RIFF_CXX_PRINT_ERRORS)
+		target_compile_definitions(riff PRIVATE RIFF_CXX_PRINT_ERRORS=1)
+	endif()
 endif()
