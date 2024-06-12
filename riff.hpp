@@ -169,11 +169,13 @@ class RIFFFile {
          */
         std::string errorToString (int errorCode);
 
+        inline riff_handle & operator() () { return *rh; }
 
-        riff_handle * rh;
         void * file;
 
     private:
+        riff_handle * rh;
+
         int type = CLOSED;
 
         int openFstreamCommon();
