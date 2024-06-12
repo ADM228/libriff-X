@@ -2,6 +2,7 @@
 #define __RIFF_WRAPPER_INCLUDED__
 
 #include <cstring>
+#include <iostream>
 extern "C" {
     #include <stddef.h>
     #include <stdio.h>
@@ -72,8 +73,8 @@ class RIFFFile {
          * @param size The expected size of the file, leave blank if unknown
          * @return Error code
          */
-        int open(std::FILE * __file, size_t __size = 0);
-        int open(std::fstream * __file, size_t __size = 0);
+        int open(std::FILE & __file, size_t __size = 0);
+        int open(std::fstream & __file, size_t __size = 0);
 
         void close();
 
@@ -200,10 +201,10 @@ int RIFFFile::open (const char* __filename, const char * __mode, size_t __size) 
     return riff_open_file(rh, (std::FILE *)file, __size);
 }
 
-int RIFFFile::open (std::FILE * __file, size_t __size) {
-    file = __file;
+int RIFFFile::open (std::FILE & __file, size_t __size) {
+    file = &__file;
     type = C_FILE|MANUAL;
-    return riff_open_file(rh, __file, __size);
+    return riff_open_file(rh, &__file, __size);
 }
 
 #pragma endregion
@@ -260,9 +261,9 @@ void RIFFFile::setAutomaticfstream(){
     file = new std::fstream;
 }
 
-int RIFFFile::open(std::fstream * __file, size_t __size){
+int RIFFFile::open(std::fstream & __file, size_t __size){
     type = FSTREAM|MANUAL;
-    file = __file;
+    file = &__file;
     return openFstreamCommon();
 }
 
