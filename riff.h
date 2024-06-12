@@ -1,7 +1,7 @@
 /*
 libriff
 
-Author/copyright: Markus Wolf
+Author/copyright: Markus Wolf, alexmush
 License: zlib (https://opensource.org/licenses/Zlib)
 
 
@@ -27,9 +27,9 @@ Use a default open-function (file, mem) or create your own
   The required function pointers for reading and seeking are set here
   When creating your own open-function, take a look at the default function code as template
 After the file is opened we are in the first chunk at list level 0
- You can freely read and seek within the data of the current junk
- Use riff_nextChunk() to go to the first data byte of the next junk (chunk header is read already then)
-If the current junk contains a list of sub level chunks:
+ You can freely read and seek within the data of the current chunk
+ Use riff_nextChunk() to go to the first data byte of the next chunk (chunk header is read already then)
+If the current chunk contains a list of sub level chunks:
  Call riff_seekLevelSub() to be positioned at the first data byte of the first chunk in the sub list level
  Call riff_levelParent() to leave the sub list without changing the file position
 Read members of the riff_handle to get all info about current file position, current chunk, etc.
