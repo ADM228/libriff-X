@@ -10,10 +10,10 @@ AR=ar -rcs
 
 .PHONY: all
 all:
-	$(CC) -o example.exe example.c riff.c
+	$(CC) -o example.exe examples/example.c src/riff.c
 
 .PHONY: lib
-lib: riff.o
+lib: src/riff.o
 	$(AR) libriff.a $<
 
 %.o: %.c
