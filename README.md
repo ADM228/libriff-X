@@ -16,7 +16,7 @@ An improved fork of the [murkymark/libriff](https://github.com/murkymark/libriff
   - Toggleable error printing from the C++ wrapper
   - Toggleable support for `std::filesystem::path` arguments
 
-See [`riff.h`](riff.h) and [`riff.hpp`](riff.hpp) for further info.
+See [`riff.h`](src/riff.h) and [`riff.hpp`](src/riff.hpp) for further info.
 
 ## Credits
 
