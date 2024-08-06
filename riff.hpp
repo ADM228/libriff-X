@@ -13,9 +13,9 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <cstring>
+#include <iostream>
 extern "C" {
-    #include <stddef.h>
-    #include <stdio.h>
     #include "riff.h"
 }
 #include <fstream>
@@ -36,143 +36,285 @@ enum fileTypes : int {
 
 class RIFFFile {
     public:
-        RIFFFile();
-        ~RIFFFile();
         /**
-         * @brief Open a RIFF file with the filename and mode provided
-         * Uses C's fopen(), so the filename is implementation defined
-         * @note Always forces binary mode
-         * @param filename Filename in fopen()'s format
-         * @param mode Modes in fopen()'s format
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown
-         * @return Error code
+         * @brief Construct a new RIFFFile object.
+         * 
+         * Constructs a new RIFFFile object, allocates a riff_handle for it.
+         */
+        RIFFFile();
+
+        /**
+         * @brief Destroy the RIFFFile object.
+         * 
+         * Deallocates riff_handle, closes the file, destroys the RIFFFile object.
+         */
+        ~RIFFFile();
+
+        /**
+         * @defgroup RIFF_CPP C++ RIFF functions
+         * @{
+         */
+
+        /**
+         * @name Opening/closing methods
+         * @{
+         */
+
+        /**
+         * @brief Open a RIFF file with C's `fopen()`.
+         * 
+         * Since it uses C's fopen(), the filename is implementation defined.
+         * 
+         * @note Always forces binary mode.
+         * 
+         * @param filename Filename in fopen()'s format.
+         * @param mode Modes in fopen()'s format.
+         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
          */
         int open(const char* __filename, const char * __mode, size_t __size = 0);
+        /**
+         * @brief Open a RIFF file with C's `fopen()`.
+         * 
+         * Since it uses C's fopen(), the filename is implementation defined.
+         * 
+         * @note Always forces binary mode.
+         * 
+         * @param filename Filename in fopen()'s format.
+         * @param mode Modes in fopen()'s format.
+         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
+         */
         inline int open(const std::string& __filename, const char * __mode, size_t __size = 0) 
             {return open(__filename.c_str(), __mode, __size);};
         #if RIFF_CXX17_SUPPORT
+        /**
+         * @brief Open a RIFF file with C's `fopen()`.
+         * 
+         * Since it uses C's fopen(), the filename is implementation defined.
+         * 
+         * @note Always forces binary mode.
+         * 
+         * @param filename Filename in fopen()'s format.
+         * @param mode Modes in fopen()'s format.
+         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
+         */
         inline int open(const std::filesystem::path& __filename, const char * __mode, size_t __size = 0)
             {return open(__filename.c_str(), __mode, __size);};
         #endif
 
         /**
-         * @brief Get RIFF data from a memory pointer
+         * @brief Get RIFF data from a memory pointer.
          * 
-         * @param mem_ptr Pointer to the memory buffer with RIFF data
-         * @param size The expected size of the data, leave at 0 (or don't specify) if unknown
-         * @return Error code
+         * @param mem_ptr Pointer to the memory buffer with RIFF data.
+         * @param size The expected size of the data, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
          */
         int open(const void * __mem_ptr, size_t __size = 0);
 
         /**
-         * @brief Open a RIFF file with the filename and mode provided
-         * Uses fstream, and always forces binary mode
-         * @param filename 
-         * @param mode 
-         * @return Error code
+         * @brief Open a RIFF file with C++'s std::fstream.
+         * 
+         * @param filename Filename in std::fstream's format.
+         * @param mode Modes in std::fstream's format.
+         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
          */
         int open(const char* __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
+        /**
+         * @brief Open a RIFF file with C++'s std::fstream.
+         * 
+         * @param filename Filename in std::fstream's format.
+         * @param mode Modes in std::fstream's format.
+         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
+         */
         int open(const std::string& __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
         #if RIFF_CXX17_SUPPORT
+        /**
+         * @brief Open a RIFF file with C++'s std::fstream.
+         * 
+         * @param filename Filename in std::fstream's format.
+         * @param mode Modes in std::fstream's format.
+         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
+         */
         int open(const std::filesystem::path& __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
         #endif
 
         /**
-         * @brief Open a RIFF file from an existing file object
-         * @note The close() function of the class will not close the file object
-         * @param file The file object 
-         * @param size The expected size of the file, leave blank if unknown
-         * @return Error code
+         * @brief Open a RIFF file from an existing C FILE object.
+         * 
+         * @note Since the file object was opened by the user, the close() function of the class will not close the file object.
+         * 
+         * @param file The C FILE object.
+         * @param size The expected size of the file, leave blank if unknown.
+         * 
+         * @return RIFF error code.
          */
         int open(std::FILE & __file, size_t __size = 0);
+        /**
+         * @brief Open a RIFF file from an existing std::fstream object.
+         * 
+         * @note Since the file object was opened by the user, the close() function of the class will not close the file object.
+         * 
+         * @param file The std::fstream object.
+         * @param size The expected size of the file, leave blank if unknown.
+         * 
+         * @return RIFF error code.
+         */
         int open(std::fstream & __file, size_t __size = 0);
 
         void close();
 
+        ///@}
+
         /**
-         * @brief Read in current chunk
-         * @note Returns RIFF_ERROR_EOC if end of chunk is reached
+         * @name Parsing methods
+         * @{
+         */
+
+        /**
+         * @brief Read in current chunk.
          * 
-         * @param to Buffer to read into
-         * @param size Amount of data to read
-         * @return size_t Amount of data read successfully
+         * Does not read beyond end of chunk.
+         * 
+         * Does not read pad byte.
+         * 
+         * @param to Buffer to read into.
+         * @param size Amount of data to read.
+         * 
+         * @return size_t Amount of data read successfully.
          */
         inline size_t readInChunk (void * to, size_t size) {return riff_readInChunk(rh, to, size);};
         /**
-         * @brief Read current chunk's data
-         * @note Returns nullptr if an error occurred
+         * @brief Read current chunk's data.
          * 
-         * @return std::vector<uint8_t> with the data
+         * @note Returns an empty vector if an error occurred.
+         * 
+         * @return std::vector<uint8_t> with the data.
          */
         std::vector<uint8_t> readChunkData ();
         /**
-         * @brief Seek in current chunk
-         * @note Returns RIFF_ERROR_EOC if end of chunk is reached
-         * @note pos 0 is first byte after chunk size (chunk offset 8)
+         * @brief Seek in current chunk.
          * 
-         * @param size Amount of data to skip
-         * @return Error code
+         * @note Only counts the actual data section of the chunk - position 0 is first byte after chunk size (chunk offset 8).
+         * 
+         * @param size Amount of data to skip.
+         * 
+         * @return RIFF error code.
          */
         inline int seekInChunk (size_t size) {return riff_seekInChunk(rh, size);};
+
+        ///@}
+
         /**
-         * @brief Seek to start of next chunk within current level
-         * @note ID and size are read automatically
+         * @name Chunk seeking methods
+         * @{
+         */
+
+        /**
+         * @brief Seek to start of next chunk within current level.
+         * 
+         * ID and size are read automatically.
          *
-         * @return Error code 
+         * @return RIFF error code.
          */
         inline int seekNextChunk () {return riff_seekNextChunk(rh);};
         /**
-         * @brief Seek back to data start of current chunk
+         * @brief Seek back to data start of current chunk.
          * 
-         * @return Error code 
+         * @return RIFF error code.
          */
         inline int seekChunkStart () {return riff_seekChunkStart (rh);};
         /**
-         * @brief Seek back to very first chunk of file at level 0
-         * Seek back to very first chunk of file at level 0 aka the position just after opening
+         * @brief Seek to the very first chunk of the file
          * 
-         * @return Error code 
+         * Rewinds to the same position as just after opening via the `open()` method.
+         * 
+         * @return RIFF error code.
          */
         inline int rewind () {return riff_rewind(rh);};
         /**
-         * @brief Go to start of first data byte of first chunk in current level
+         * @brief Seek to the beginning of the current level.
          * 
-         * @return Error code  
+         * Seeks to the first data byte of the first chunk in current level.
+         * 
+         * @return RIFF error code.
          */
         inline int seekLevelStart () {return riff_seekLevelStart (rh);};
 
+        ///@}
+
         /**
-         * @brief Go to sub level chunk
-         * Go to sub level chunk (auto seek to start of parent chunk if not already there); "LIST" chunk typically contains a list of sub chunks
-         * @return Error code  
+         * @name Level seeking methods
+         * @{
+         */
+
+        /**
+         * @brief Go to sub level chunk.
+         * 
+         * @note Automatically seeks to the start of parent chunk's data.
+         * 
+         * @return RIFF error code.
          */
         inline int seekLevelSub () {return riff_seekLevelSub(rh);};
         /**
-         * @brief Step back from sub list level
-         * Step back from sub list level; position doesn't change and you are still inside the data section of the parent list chunk (not at the beginning of it!)
-         * Returns != RIFF_ERROR_NONE if we are at level 0 already and can't go back any further
-         * @return Error code  
+         * @brief Step back from sub list level.
+         * 
+         * @note The position does not change, you are still inside the data section of the parent list chunk!
+         * 
+         * @return RIFF error code.
          */
         inline int levelParent () {return riff_levelParent(rh);};
         /**
-         * @brief Validate chunk level structure
-         * Validate chunk level structure, seeks to the first byte of the current level, seeks from chunk header to chunk header
-         * To check all sub lists you need to define a recursive function
-         * File position is changed by function
-         * @return Error code  
+         * @brief Validate chunk level structure.
+         * 
+         * Seeks to the first byte of the current level, then header to header inside of the current chunk level.
+         * 
+         * To check all sub lists you need recursion.
+         * 
+         * File position is changed by this function.
+         * 
+         * @return RIFF error code.
          */
         inline int levelValidate () {return riff_levelValidate(rh);};
 
+        ///@}
+
         /**
-         * @brief Return string to error code
+         * @brief Return error string with position.
          * 
-         * @param errorCode 
-         * @return Error string, with position at first in hex
+         * Includes the position where the problem occured.
+         * 
+         * @param errorCode The error code to print.
+         * 
+         * @return Error string with position.
          */
         std::string errorToString (int errorCode);
 
-        inline riff_handle & operator() () { return *rh; }
+        /**
+         * @brief Access the riff_handle object.
+         * 
+         * @return The riff_handle.
+         */
+        inline const riff_handle & operator() () { return *rh; }
 
+        ///@}
+
+        /**
+         * @brief File pointer
+         * 
+         * The pointer to the file object as provided by open() methods
+         */
         void * file;
 
     private:

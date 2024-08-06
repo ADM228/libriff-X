@@ -37,6 +37,16 @@ Read members of the riff_handle to get all info about current file position, cur
 May not work for RIFF files larger than 2GB.
 */
 
+/**
+ * @authors Markus Wolf, alexmush
+ * @copyright Markus Wolf (2016), alexmush (2023-2024)
+ * @version 1.1.0
+ * @date 2016-2024
+ * 
+ * @include README.md
+ * 
+ */
+
 
 
 
@@ -47,179 +57,519 @@ May not work for RIFF files larger than 2GB.
 #include <stdio.h>
 
 
-#define RIFF_HEADER_SIZE  12      //size of RIFF file header and RIFF/LIST chunks that contain subchunks
-#define RIFF_CHUNK_DATA_OFFSET 8  //offset from start of chunk, size of chunk ID + chunk size field.
+/**
+ * @brief Size of RIFF file header and RIFF/LIST chunks that contain subchunks.
+ */
+#define	RIFF_HEADER_SIZE		12
+/**
+ * @brief The offset of data compared to the start of the chunk, equals size of chunk ID + chunk size field.
+ */
+#define	RIFF_CHUNK_DATA_OFFSET	8
 
+/**
+ * @defgroup Errors Error codes
+ * 
+ * Error codes yielded by most `riff_...()` functions.
+ * 
+ * @note Do not hardcode these in your software as the value mapping may change in the future.
+ * @{
+ */
 
-//Error codes (pass to riff_errorToString()), value mapping may change in the future
-//non critical
-#define RIFF_ERROR_NONE   0  //no error
-#define RIFF_ERROR_EOC    1  //end of current chunk, when trying to read/seek beyond end of current chunk data
-#define RIFF_ERROR_EOCL   2  //end of chunk list, if you are already at the last chunk in the current list level, occures when trying to seek the next chunk
-#define RIFF_ERROR_EXDAT  3  //excess bytes at end of chunk list level, not critical, the rest is simply ignored (1-7 bytes inside list, otherwise a following chunk is expected - more at file level possible), should never occur
+/**
+ * @name Non-critical errors
+ * @{
+ */
 
-//critical errors
-#define RIFF_ERROR_CRITICAL  4  //first critical error code ( >= RIFF_ERROR_CRITICAL is always critical error)
+/**
+ * @brief No error.
+ */
+#define RIFF_ERROR_NONE		0
+/**
+ * @brief End of current chunk.
+ * 
+ * Occurs when trying to read/seek beyond end of current chunk data.
+ */
+#define RIFF_ERROR_EOC		1
+/**
+ * @brief End of chunk list.
+ * 
+ * Occurs when trying to seek the next chunk while already at the last chunk in a chunk list.
+ */
+#define RIFF_ERROR_EOCL		2
+/**
+ * @brief Excess bytes at end of chunk list level.
+ * 
+ * Not critical, the excess data is simply ignored (1-7 bytes inside list, otherwise a following chunk is expected - more at file level possible), should never occur.
+ */
+#define RIFF_ERROR_EXDAT	3
 
-#define RIFF_ERROR_ILLID     4  //illegal ID, ID (or type) contains not printable or non ASCII characters or is wrong
-#define RIFF_ERROR_ICSIZE    5  //invalid chunk size value in chunk header, too small or value exceeds list level or file - indicates corruption or cut off file 
-#define RIFF_ERROR_EOF       6  //unexpected end of RIFF file, indicates corruption (wrong chunk size field) or a cut off file or the passed size parameter was wrong (too small) upon opening
-#define RIFF_ERROR_ACCESS    7  //access error, indicating that the file is not accessible (permissions, invalid file handle, etc.)
+///@}
 
-#define RIFF_ERROR_INVALID_HANDLE 8  //riff_handle is not set up or is NULL
+/**
+ * @name Critical errors
+ * @{
+ */
 
+/**
+ * @brief First critical error code.
+ * 
+ * A way to check if an error is critical - just use @c ( @c >= @c RIFF_ERROR_CRITICAL @c ).
+ */
+#define RIFF_ERROR_CRITICAL	4
 
-/*
-//riff header
-//unpacked -> do not read directly to it from file
-typedef struct riff_header
-{
-	unsigned char chunkID[5];    //offs 0x00 (with terminator to be printable)
-	int chunkDataSize;           //offs 0x04
-	unsigned char riffType[5];   //offs 0x08 
-} riff_header;
-*/
+/**
+ * @brief Illegal ID.
+ * 
+ * Occurs when ID (or type) contains not printable or non-ASCII characters or is wrong.
+ */
+#define RIFF_ERROR_ILLID	4
+/**
+ * @brief Invalid chunk size value in chunk header.
+ * 
+ * Occurs when the chunk size is too small or exceeds list level or file.
+ * 
+ * Indicates corruption or cut off file.
+ */
+#define RIFF_ERROR_ICSIZE	5
+/**
+ * @brief Unexpected end of RIFF file
+ * 
+ * Indicates corruption (wrong chunk size field), a cut off file or the size argument for the opening function having been wrong (too small).
+ */
+#define RIFF_ERROR_EOF		6
+/**
+ * @brief Access error
+ * 
+ * Indicates that the file is not accessible (could happen due to permissions, invalid file handle, etc.).
+ */
+#define RIFF_ERROR_ACCESS	7
 
+/**
+ * @brief riff_handle is not set up or is NULL.
+ */
+#define RIFF_ERROR_INVALID_HANDLE	8
 
+///@}
 
+///@}
 
-//level stack entry
-//needed to retrace from sub level (list) chunk
-//header info of parent
+/**
+ * @brief Level stack entry struct.
+ *
+ * Needed to retrace from sublevel (list) chunks.
+ * 
+ * (sorta) Contains header info of the parent level.
+ */
 struct riff_levelStackE {
-	size_t c_pos_start;        //absolute chunk position in file stream, start of chunk header
-	char c_id[5];    //ID of chunk
-	size_t c_size;             //chunk size without chunk header (value as stored in RIFF file)
-	char c_type[5];  //(form) type ID of chunk (available for all chunks containing sub chunks) - at level 0 it is the RIFF form type
+	/**
+	 * @brief Absolute parent chunk position in file stream.
+	 */
+	size_t c_pos_start;
+	/**
+	 * @brief ID of parent chunk.
+	 *
+	 * The first 4 bytes of RIFF/LIST chunk data.
+	 */
+	char c_id[5];
+	/**
+	 * @brief Parent chunk size.
+	 *
+	 * Without header (contains value as stored in RIFF file).
+	 */
+	size_t c_size;
+	/**
+	 * @brief Type ID of parent chunk.
+	 * 
+	 * Should either be RIFF, LIST or BW64.
+	 */
+	char c_type[5];
 };
 
-
-//RIFF handle structure
-//- Members are public and intended for read access (to avoid a plethora of get-functions)
-//  Be careful with the stack, check "ls_size" first
+/**
+ * @defgroup riff_handle The RIFF handle
+ * @{
+ */
+/**
+ * @brief The RIFF handle.
+ * 
+ * Members are public and intended for read access (to avoid a plethora of get-functions).
+ * 
+ * Be careful with the level stack, check riff_handle::ls_size first.
+ */
 typedef struct riff_handle {
-	//RIFF file header info, available once the file is opened (could have been put)
-	char h_id[5];      //"RIFF" + terminator
-	size_t h_size;     //size value given in header (h_size + 8 == file_size)
-	char h_type[5];    //type of file FOURCC + terminator
-	size_t pos_start;  //start pos of RIFF file
+	/**
+	 * @name RIFF file header info.
+	 * 
+	 * Available after the file has been opened.
+	 */
+	///@{
+	/**
+	 * @brief Header ID, should be `"RIFF"`.
+	 * 
+	 * Contains terminator to be printable.
+	 */
+	char h_id[5];
+	/**
+	 * @brief Size value given in header.
+	 * 
+	 * h_size + 8 equals to the file size.
+	 */
+	size_t h_size;
+	/**
+	 * @brief Type ID of file.
+	 * 
+	 * Should contain 4 ASCII characters.
+	 * 
+	 * Also contains terminator to be printable.
+	 */
+	char h_type[5];
+	/**
+	 * @brief Start position of RIFF file.
+	 * 
+	 * @todo Maybe making it current level would optimize stuff?.
+	 */
+	size_t pos_start;
+	///@}
 
-	size_t size;      //total size of RIFF file, 0 means unspecified
-	size_t pos;       //current position in stream
+	/**
+	 * @brief Total size of RIFF file.
+	 * 
+	 * 0 means unspecified.
+	 */
+	size_t size;
+	/**
+	 * @brief Current position in data stream.
+	 */
+	size_t pos;
 	
-	size_t c_pos_start; //start pos of current chunk (absolute pos)
-	size_t c_pos;       //position in current chunk (offset in data block)
-	//int c_pos_data;    //position in chunk data (c_pos + 8)
-	char c_id[5];       //id of current chunk + terminator
-	size_t c_size;      //size of current chunk data in bytes (value stored in file), excluding chunk header
-	char pad;           //1 if c_size is odd, else 0 (indicates unused extra byte at end of chunk)
+	/**
+	 * @name Current chunk's data.
+	 */
+	///@{
+	/**
+	 * @brief Absolute start position of current chunk.
+	 */
+	size_t c_pos_start;
+	/**
+	 * @brief Position in current chunk.
+	 * 
+	 * Relative to the start of the chunk's data block.
+	 */
+	size_t c_pos;
+	/**
+	 * @brief ID of current chunk.
+	 * 
+	 * Contains terminator to be printable.
+	 */
+	char c_id[5];
+	/**
+	 * @brief Size of current chunk.
+	 * 
+	 * Excludes chunk header - same value as stored in RIFF file.
+	 */
+	size_t c_size;
+	/**
+	 * @brief Pad byte.
+	 * 
+	 * 1 if c_size is odd, else 0 (indicates unused extra byte at end of chunk).
+	 */
+	char pad;
+	///@}
 
-	struct riff_levelStackE *ls;   //level stack, resizes dynamically, to access the parent chunk data: h->ls[h->ls_level-1]
-	size_t ls_size;     //size of stack in num. elements, stack extends automatically if needed
-	int ls_level;       //current level, starts at 0
+	/**
+	 * @name Level stack data.
+	 */
+	///@{
+	/**
+	 * @brief Level stack pointer.
+	 * 
+	 * Resizes dynamically.
+	 * 
+	 * To access the parent chunk data use `ls[ls_level-1]`.
+	 */
+	struct riff_levelStackE *ls;
+	/**
+	 * @brief Size of stack in entries.
+	 * 
+	 * Stack extends automatically if needed.
+	 */
+	size_t ls_size;
+	/**
+	 * @brief Current stack level.
+	 * 
+	 * Starts at 0.
+	 */
+	int ls_level;
+	///@}
 	
-	void *fh;  //file handle or memory address, only accessed by user FP functions
+	/**
+	 * @brief Data access handle.
+	 * 
+	 * File handle or memory address.
+	 * 
+	 * Only accessed by user FP functions.
+	 */
+	void *fh;
 	
 	
 	
-	// ******** For internal use:
-	
-	
-	//read bytes; required
+	/**
+	 * @name Internal functions
+	 * 
+	 * Function pointers for e.g. defining your own input methods
+	 */
+	///@{
+	/**
+	 * @brief Read bytes.
+	 * 
+	 * @note Required for proper operation.
+	 */
 	size_t (*fp_read)(struct riff_handle *rh, void *ptr, size_t size);
 	
-	//seek position relative to start pos; required
+	/**
+	 * @brief Seek position relative to start pos.
+	 * 
+	 * @note Required for proper operation.
+	 */
 	size_t (*fp_seek)(struct riff_handle *rh, size_t pos);
 	
-	//print error; optional;
-	//allocate function maps it to vfprintf(stderr, ...) by default; set to NULL after allocation to disable any printing
-	//to be assigned before calling riff_open_...()
+	/**
+	 * @brief Print error.
+	 * 
+	 * riff_allocate maps it to `vfprintf(stderr, ...)` by default.\n 
+	 * Set this pointer to NULL right after allocation to disable any printing.\n 
+	 * This pointer should only be modified right after allocation, and before any other `riff_...()` functions.
+	 */
 	int (*fp_printf)(const char * format, ... );
+
+	///@}
 	
 } riff_handle;
 
+///@}
 
-
-
-//Allocate, initialize and return handle;
+/**
+ * @defgroup RIFF_C C RIFF functions
+ * @{
+ */
+/**
+ * @name riff_handle allocation/deallocation functions
+ * @{
+ */
+/**
+ * @brief Allocate, initialize and return a riff_handle.
+ * 
+ * @return Pointer to the intialized riff_handle.
+ */
 riff_handle *riff_handleAllocate();
-
-//Free allocated handle memory
+/**
+ * @brief Free the memory allocated to a riff_handle.
+ * 
+ * @param rh The riff_handle to free.
+ */
 void riff_handleFree(riff_handle *rh);
 
+///@}
 
 
-//functions to parse a riff file
-size_t riff_readInChunk(riff_handle *rh, void *to, size_t size); //read in current chunk, returns RIFF_ERROR_EOC if end of chunk is reached
-int riff_seekInChunk(riff_handle *rh, size_t c_pos);      //seek in current chunk, returns RIFF_ERROR_EOC if end of chunk is reached, pos 0 is first byte after chunk size (chunk offset 8)
+/**
+ * @name Parsing functions
+ * @{
+ */
+/**
+ * @brief Read to memory block.
+ *
+ * @param rh The riff_handle to use.
+ * @param to The pointer to read data to.
+ * @param size The amount of data to read.
+ * 
+ * @return Amount of successfully read bytes.
+ *
+ * Does not read beyond end of chunk.
+ * 
+ * Does not read the pad byte.
+ */
+size_t riff_readInChunk(riff_handle *rh, void *to, size_t size);
+/**
+ * @brief Seek in current chunk.
+ *
+ * @param rh The riff_handle to use.
+ * @param c_pos The chunk position to seek to.
+ * 
+ * @return RIFF error code.
+ *
+ * @note Only counts the actual data section of the chunk - position 0 is first byte after chunk size (chunk offset 8).
+ */
+int riff_seekInChunk(riff_handle *rh, size_t c_pos);
 
-int riff_seekNextChunk(struct riff_handle *rh);       //seek to start of next chunk within current level, ID and size is read automatically, return
+///@}
+
+/**
+ * @name Chunk seeking functions
+ * @{
+ */
+/**
+ * @brief Seek to start of next chunk within current level.
+ * 
+ * ID and size are read automatically.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
+int riff_seekNextChunk(struct riff_handle *rh);
 //int riff_seekNextChunkID(struct riff_handle *rh, char *id);  //find and go to next chunk with id (4 byte) in current level, fails if not found - position is invalid then -> maybe not needed, the user can do it via simple loop
-int riff_seekChunkStart(struct riff_handle *rh);      //seek back to data start of current chunk
-int riff_rewind(struct riff_handle *rh);              //seek back to very first chunk of file at level 0, the position just after opening via riff_open_...()
-int riff_seekLevelStart(struct riff_handle *rh);      //goto start of first data byte of first chunk in current level (seek backward)
+/**
+ * @brief Seek to data start of the current chunk.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
+int riff_seekChunkStart(struct riff_handle *rh);
+/**
+ * @brief Seek to the very first chunk of the file.
+ * 
+ * Rewinds to the same position as just after opening via `riff_open_...()`.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
+int riff_rewind(struct riff_handle *rh);
+/**
+ * @brief Seek to the beginning of the current level.
+ * 
+ * Seeks to the first data byte of the first chunk in current level.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
+int riff_seekLevelStart(struct riff_handle *rh);
 
-int riff_seekLevelSub(struct riff_handle *rh);        //goto sub level chunk (auto seek to start of parent chunk if not already there); "LIST" chunk typically contains a list of sub chunks
+///@}
 
-//step back from sub list level; position doesn't change and you are still inside the data section of the parent list chunk (not at the beginning of it!)
-//returns != RIFF_ERROR_NONE, if we are at level 0 already and can't go back any further
+/**
+ * @name Level seeking functions
+ * @{
+ */
+
+/**
+ * @brief Go to sub level chunk.
+ * 
+ * @note Automatically seeks to the start of parent chunk's data.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
+int riff_seekLevelSub(struct riff_handle *rh);
+
+/**
+ * @brief Step back from sub list level.
+ * 
+ * @note The position does not change, you are still inside the data section of the parent list chunk!
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
 int riff_levelParent(struct riff_handle *rh);
 
 //int riff_seekLevelParent(struct riff_handle *rh);     //go back from sub level to the start of parent chunk (seek backward)
 //int riff_seekLevelParentNext(struct riff_handle *rh); //go back from sub level to the start of the chunk following the parent chunk (seek forward)
 
-//validate chunk level structure, seeks to the first byte of the current level, seeks from chunk header to chunk header
-//to check all sub lists you need to define a recursive function
-//file position is changed by function
+/**
+ * @brief Validate chunk level structure.
+ * 
+ * Seeks to the first byte of the current level, then header to header inside of the current chunk level.
+ * 
+ * To check all sub lists you need recursion.
+ * 
+ * File position is changed by this function.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
 int riff_levelValidate(struct riff_handle *rh);
 
-//return string to error code
-//the current position (h->pos) tells you where in the file the problem occured
+///@}
+
+/**
+ * @brief Return error string.
+ * 
+ * @note The current position (riff_handle::pos) tells you where the problem occured in the file.
+ * 
+ * @param e The error code.
+ * 
+ * @return Pointer to string with the name of the error.
+ */
 const char *riff_errorToString(int e);
 
+/**
+ * @todo Validate all, follow LIST chunks
+ * @todo Check for duplicate chunk ID in one evel (????????)
+ */
 
-
-
-//TODO:
-
-//validate all, follow LIST chunks
-//check for duplicate chunk id in one evel
-//...
-
-//validate current level
-//...
-
-
-
-
-// **** User I/O init ****
-// Functions used by built in open-functions
-// (To be used in your user made open-function)
-
-
-
-
-
-//read RIFF file header, return error code;
-//to be called from user IO functions
+/**
+ * @name I/O Init functions
+ * 
+ * Functions used by built-in open functions \n
+ * (To be used in your user-made open functions)
+ * 
+ * @{
+ */
+/**
+ * @brief Read RIFF file header.
+ * 
+ * To be caled from user I/O functions.
+ * 
+ * @param rh The riff_handle to use.
+ * 
+ * @return RIFF error code.
+ */
 int riff_readHeader(riff_handle *rh);
 
+///@}
 
+/**
+ * @name RIFF Open functions
+ * 
+ * Use the following built in open-functions or make your own.
+ * 
+ * Only pass a fresh allocated handle.
+ * 
+ * @{
+ */
 
-
-// **** User I/O setup ****
-// Use the following built in open-functions or make your own
-// Only pass a fresh allocated handle
-
-//create and return initialized RIFF handle, FPs are set up for file access
-//file position must be at the start of RIFF file, which can be nested in another file (file pos > 0)
-//Since the file was opened by the user, it must be closed by the user.
-//size: must be exact if > 0, pass 0 for unknown size (the correct size helps to identify file corruption)
+/**
+ * @brief Initialize RIFF handle and set up FPs for C FILE access.
+ * 
+ * @note File position must be at the start of the RIFF data (it can be nested in another file).
+ * @note Since the file was opened by the user, it must be closed by the user.
+ * @note The file size must be exact if > 0, use 0 for unknown size \n (the correct size helps to identify file corruption).
+ * 
+ * @param rh The riff_handle to initialize.
+ * @param f The FILE pointer to read from.
+ * @param size The file size.
+ * 
+ * @return RIFF error code.
+ */
 int riff_open_file(riff_handle *rh, FILE *f, size_t size);
 
-//create and return initialized RIFF handle, FPs are set up to default for memory access
-//If memory was allocated by the user, it must be deallocated by the user after use.
-//size: must be > 0
+/**
+ * @brief Initialize RIFF handle and set up FPs for memory access.
+ * 
+ * @note Since the memory was allocated by the user, it must be deallocated by the user.
+ * 
+ * @param rh The riff_handle to initialize.
+ * @param f The FILE pointer to read from.
+ * @param size The file size, must be > 0.
+ * 
+ * @return RIFF error code.
+ */
 int riff_open_mem(riff_handle *rh, const void *memptr, size_t size);
 
 
@@ -228,7 +578,8 @@ int riff_open_mem(riff_handle *rh, const void *memptr, size_t size);
 // see and use "riff_open_file()" definition as template
 // "int open_user(riff_handle *h, FOO, size_t size)";
 
+///@}
 
-
+///@}
 
 #endif // _RIFF_H_

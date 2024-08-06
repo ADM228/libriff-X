@@ -15,8 +15,7 @@
 #define RIFF_LEVEL_ALLOC 16  //number of stack elements allocated per step lock more when needing to enlarge (step)
 
 
-//table to translate Error code to string
-//shall correspond to RIFF_ERROR_... macros
+// Table to translate error codes to strings, corresponds to RIFF_ERROR_... macros
 static const char *riff_es[] = {
 	//0
 	"No error",
