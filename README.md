@@ -1,6 +1,8 @@
 # libriff
 A C99 library for parsing [RIFF (Resource Interchange File Format)](https://en.wikipedia.org/wiki/Resource_Interchange_File_Format) files with a C++11 wrapper (with optional C++17 features). Some common examples RIFF file types are WAV, AVI, ANI, MIDI SMF, MIDI, DLS.
 
+## NOTE: This branch is only for legacy compatibility with [Genecyzer](https://github.com/ADM228/Genecyzer). Do not use it in your own project, use either the `main` branch or the `write-new` branch.
+
 ## Features
 
 - Helps to stroll around in the chunk tree structure
