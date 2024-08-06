@@ -40,3 +40,4 @@ test*.bat
 .vscode
 .cache
 build
+doc
