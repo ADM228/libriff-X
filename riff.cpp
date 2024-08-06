@@ -135,12 +135,16 @@ void RIFFFile::close () {
 }
 
 std::string RIFFFile::errorToString (int errorCode) {
-    std::string errorString(riff_errorToString(errorCode));
-    char buffer[2+2+(2*sizeof(size_t))+1];
-    std::snprintf(buffer, 19, "[0x%zX]", rh->pos);
-    std::string outstring (buffer);
-    outstring += errorString;
-    return outstring;
+    #define posStrSize 2+1+3+1+2+(2*sizeof(size_t))+1
+
+    std::string outString(riff_errorToString(errorCode));
+    char buffer[posStrSize];
+    std::snprintf(buffer, posStrSize, "at pos 0x%zX", rh->pos);
+    std::string posString (buffer);
+    outString += posString;
+    return outString;
+
+    #undef posStrSize
 }
 
 std::vector<uint8_t> RIFFFile::readChunkData() {

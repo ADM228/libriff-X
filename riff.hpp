@@ -10,8 +10,9 @@
 #ifndef __RIFF_HPP__
 #define __RIFF_HPP__
 
-#include <cstring>
-#include <iostream>
+
+#include <cstdint>
+#include <cstddef>
 extern "C" {
     #include <stddef.h>
     #include <stdio.h>
