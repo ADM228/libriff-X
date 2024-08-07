@@ -55,7 +55,7 @@ May not work for RIFF files larger than 2GB.
 
 #include <stddef.h>
 #include <stdio.h>
-
+#include <stdint.h>
 
 /**
  * @brief Size of RIFF file header and RIFF/LIST chunks that contain subchunks.
@@ -273,7 +273,7 @@ typedef struct riff_handle {
 	 * 
 	 * 1 if c_size is odd, else 0 (indicates unused extra byte at end of chunk).
 	 */
-	char pad;
+	uint8_t pad;
 	///@}
 
 	/**

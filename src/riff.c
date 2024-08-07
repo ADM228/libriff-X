@@ -95,7 +95,7 @@ int riff_open_file(riff_handle *rh, FILE *f, size_t size){
 
 /*****************************************************************************/
 size_t read_mem(riff_handle *rh, void *ptr, size_t size){
-	memcpy(ptr, ((unsigned char*)rh->fh+rh->pos), size);
+	memcpy(ptr, ((uint8_t*)rh->fh+rh->pos), size);
 	return size;
 }
 
@@ -128,15 +128,15 @@ int riff_open_mem(riff_handle *rh, const void *ptr, size_t size){
 
 /*****************************************************************************/
 //pass pointer to 32 bit LE value and convert, return in native byte order
-unsigned int convUInt32LE(const void *p){
-	const unsigned char *c = (const unsigned char*)p;
+uint32_t convUInt32LE(const void *p){
+	const uint8_t *c = (const uint8_t*)p;
 	return c[0] | (c[1] << 8) | (c[2] << 16) | (c[3] << 24);
 }
 
 
 /*****************************************************************************/
 //read 32 bit LE from file via FP and return as native
-unsigned int readUInt32LE(riff_handle *rh){
+uint32_t readUInt32LE(riff_handle *rh){
 	char buf[4] = {0};
 	rh->fp_read(rh, buf, 4);
 	rh->pos += 4;
@@ -252,10 +252,10 @@ void stack_push(riff_handle *rh, const char *type){
 	
 	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
 	ls->c_pos_start = rh->c_pos_start;
-	strcpy(ls->c_id, rh->c_id);
+	memcpy(ls->c_id, rh->c_id, 4);
 	ls->c_size = rh->c_size;
 	//printf("list size %d\n", (rh->ls[rh->ls_level].size));
-	strcpy(ls->c_type, type);
+	memcpy(ls->c_type, type, 4);
 	rh->ls_level++;
 }
 
@@ -298,7 +298,7 @@ int riff_readHeader(riff_handle *rh){
 		return RIFF_ERROR_INVALID_HANDLE;
 	}
 	
-	int n = rh->fp_read(rh, buf, RIFF_HEADER_SIZE);
+	size_t n = rh->fp_read(rh, buf, RIFF_HEADER_SIZE);
 	rh->pos += n;
 	
 	if(n != RIFF_HEADER_SIZE){
@@ -490,7 +490,7 @@ int riff_seekLevelSub(riff_handle *rh){
 		rh->c_pos = 0;
 	}
 	//read type ID
-	unsigned char type[5] = "\0\0\0\0\0";
+	char type[5] = "\0\0\0\0\0";
 	rh->fp_read(rh, type, 4);
 	rh->pos += 4;
 	//verify type ID
