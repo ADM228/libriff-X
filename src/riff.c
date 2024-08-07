@@ -14,6 +14,7 @@
 
 #define RIFF_LEVEL_ALLOC 16  //number of stack elements allocated per step lock more when needing to enlarge (step)
 
+#define checkValidRiffHandle(rh) if (rh == NULL) return RIFF_ERROR_INVALID_HANDLE
 
 // Table to translate error codes to strings, corresponds to RIFF_ERROR_... macros
 static const char *riff_es[] = {
@@ -76,8 +77,7 @@ size_t seek_file(riff_handle *rh, size_t pos){
 /*****************************************************************************/
 //description: see header file
 int riff_open_file(riff_handle *rh, FILE *f, size_t size){
-	if(rh == NULL)
-		return RIFF_ERROR_INVALID_HANDLE;
+	checkValidRiffHandle(rh);
 	rh->fh = f;
 	rh->size = size;
 	rh->pos_start = ftell(f); //current file offset of stream considered as start of RIFF file
@@ -107,8 +107,7 @@ size_t seek_mem(riff_handle *rh, size_t pos){
 /*****************************************************************************/
 //description: see header file
 int riff_open_mem(riff_handle *rh, const void *ptr, size_t size){
-	if(rh == NULL)
-		return RIFF_ERROR_INVALID_HANDLE;
+	checkValidRiffHandle(rh);
 	
 	rh->fh = (void *)ptr;
 	rh->size = size;
@@ -149,6 +148,8 @@ uint32_t readUInt32LE(riff_handle *rh){
 //read chunk header
 //return error code
 int riff_readChunkHeader(riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	char buf[8];
 	
 	int n = rh->fp_read(rh, buf, 8);
@@ -290,6 +291,8 @@ void riff_handleFree(riff_handle *rh){
 //description: see header file
 //shall be called only once by the open-function
 int riff_readHeader(riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	char buf[RIFF_HEADER_SIZE];
 	
 	if(rh->fp_read == NULL) {
@@ -381,6 +384,7 @@ size_t riff_readInChunk(riff_handle *rh, void *to, size_t size){
 //keep track of position
 //c_pos: relative offset from chunk data start
 int riff_seekInChunk(riff_handle *rh, size_t c_pos){
+	checkValidRiffHandle(rh);
 	//seeking behind last byte is valid, next read at that pos will fail
 	if(c_pos < 0  ||  c_pos > rh->c_size){
 		return RIFF_ERROR_EOC;
@@ -395,6 +399,8 @@ int riff_seekInChunk(riff_handle *rh, size_t c_pos){
 /*****************************************************************************/
 //description: see header file
 int riff_seekNextChunk(riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	size_t posnew = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad; //expected pos of following chunk
 	
 	size_t listend;
@@ -429,6 +435,8 @@ int riff_seekNextChunk(riff_handle *rh){
 
 /*****************************************************************************/
 int riff_seekChunkStart(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	//seek data offset 0 in current chunk
 	rh->pos = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET;
 	rh->c_pos = 0;
@@ -439,6 +447,8 @@ int riff_seekChunkStart(struct riff_handle *rh){
 
 /*****************************************************************************/
 int riff_rewind(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	//pop stack as much as possible
 	while(rh->ls_level > 0) {
 		stack_pop(rh);
@@ -448,6 +458,8 @@ int riff_rewind(struct riff_handle *rh){
 
 /*****************************************************************************/
 int riff_seekLevelStart(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	//if in sub list level
 	if(rh->ls_level > 0)
 		rh->pos = rh->ls[rh->ls_level - 1].c_pos_start;
@@ -469,6 +481,8 @@ int riff_seekLevelStart(struct riff_handle *rh){
 /*****************************************************************************/
 //description: see header file
 int riff_seekLevelSub(riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	//according to "https://en.wikipedia.org/wiki/Resource_Interchange_File_Format" only RIFF and LIST chunk IDs can contain subchunks
 	if(strcmp(rh->c_id, "LIST") != 0  && strcmp(rh->c_id, "RIFF") != 0 && strcmp(rh->c_id, "BW64") != 0){
 		if(rh->fp_printf)
@@ -514,6 +528,8 @@ int riff_seekLevelSub(riff_handle *rh){
 /*****************************************************************************/
 //description: see header file
 int riff_levelParent(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	if(rh->ls_level <= 0)
 		return -1;  //not critical error, we don't have or need a macro for that
 	stack_pop(rh);
@@ -523,6 +539,8 @@ int riff_levelParent(struct riff_handle *rh){
 
 /*****************************************************************************/
 int riff_levelValidate(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
 	int r;
 	//seek to start of current list
 	if((r = riff_seekLevelStart(rh))  !=  RIFF_ERROR_NONE)
