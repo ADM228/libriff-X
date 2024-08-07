@@ -565,40 +565,7 @@ int riff_levelValidate(struct riff_handle *rh){
 const char *riff_errorToString(int e){
 	//map error to error string
 	//Make sure mapping is correct!
-	switch (e){
-		case RIFF_ERROR_NONE:
-			return riff_es[RIFF_ERROR_NONE];
-			break;
-		case RIFF_ERROR_EOC:
-			return riff_es[RIFF_ERROR_EOC];
-			break;
-		case RIFF_ERROR_EOCL:
-			return riff_es[RIFF_ERROR_EOCL];
-			break;
-		case RIFF_ERROR_EXDAT:
-			return riff_es[RIFF_ERROR_EXDAT];
-			break;
-		
-		case RIFF_ERROR_ILLID:
-			return riff_es[RIFF_ERROR_ILLID];
-			break;
-		case RIFF_ERROR_ICSIZE:
-			return riff_es[RIFF_ERROR_ICSIZE];
-			break;
-		case RIFF_ERROR_EOF:
-			return riff_es[RIFF_ERROR_EOF];
-			break;
-		case RIFF_ERROR_ACCESS:
-			return riff_es[RIFF_ERROR_ACCESS];
-			break;
-		case RIFF_ERROR_INVALID_HANDLE:
-			return riff_es[RIFF_ERROR_INVALID_HANDLE];
-			break;
-		
-		
-		default:
-			return  riff_es[9];
-			break;
-	}
+	if (e >= 0 && e <= RIFF_ERROR_MAX) return riff_es[e];
+	else return riff_es[9];
 }
 

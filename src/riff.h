@@ -132,13 +132,13 @@ May not work for RIFF files larger than 2GB.
  */
 #define RIFF_ERROR_ICSIZE	5
 /**
- * @brief Unexpected end of RIFF file
+ * @brief Unexpected end of RIFF file.
  * 
  * Indicates corruption (wrong chunk size field), a cut off file or the size argument for the opening function having been wrong (too small).
  */
 #define RIFF_ERROR_EOF		6
 /**
- * @brief Access error
+ * @brief Access error.
  * 
  * Indicates that the file is not accessible (could happen due to permissions, invalid file handle, etc.).
  */
@@ -150,6 +150,11 @@ May not work for RIFF files larger than 2GB.
 #define RIFF_ERROR_INVALID_HANDLE	8
 
 ///@}
+
+/**
+ * @brief The last RIFF_ERROR code.
+ */
+#define RIFF_ERROR_MAX 8
 
 ///@}
 
