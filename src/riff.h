@@ -34,21 +34,8 @@ If the current chunk contains a list of sub level chunks:
  Call riff_levelParent() to leave the sub list without changing the file position
 Read members of the riff_handle to get all info about current file position, current chunk, etc.
 
-May not work for RIFF files larger than 2GB.
+Due to the size fields being 4 bytes, this library may not work for RIFF files larger than 2GB.
 */
-
-/**
- * @authors Markus Wolf, alexmush
- * @copyright Markus Wolf (2016), alexmush (2023-2024)
- * @version 1.1.0
- * @date 2016-2024
- * 
- * @include README.md
- * 
- */
-
-
-
 
 #ifndef _RIFF_H_
 #define _RIFF_H_
@@ -461,7 +448,7 @@ int riff_seekLevelStart(struct riff_handle *rh);
  */
 
 /**
- * @brief Go to sub level chunk.
+ * @brief Go to sub level, load first chunk.
  * 
  * @note Automatically seeks to the start of parent chunk's data.
  * 
@@ -472,7 +459,7 @@ int riff_seekLevelStart(struct riff_handle *rh);
 int riff_seekLevelSub(struct riff_handle *rh);
 
 /**
- * @brief Step back from sub list level.
+ * @brief Step back from sub level.
  * 
  * @note The position does not change, you are still inside the data section of the parent list chunk!
  * 
@@ -482,8 +469,29 @@ int riff_seekLevelSub(struct riff_handle *rh);
  */
 int riff_levelParent(struct riff_handle *rh);
 
-//int riff_seekLevelParent(struct riff_handle *rh);     //go back from sub level to the start of parent chunk (seek backward)
-//int riff_seekLevelParentNext(struct riff_handle *rh); //go back from sub level to the start of the chunk following the parent chunk (seek forward)
+/**
+ * @todo int riff_seekLevelParent(struct riff_handle *rh); 
+ */
+// /**
+//  * 
+//  * @brief Step back from sub level, seek to start of current chunk
+//  *
+//  * @param rh The riff_handle to use.
+//  *
+//  * @return RIFF error code. 
+//  */
+// int riff_seekLevelParent(struct riff_handle *rh);
+/**
+ * @todo int riff_seekLevelParentNext(struct riff_handle *rh);
+ */
+// /**
+//  * @brief Step back from sub level, seek to start of next chunk
+//  *
+//  * @param rh The riff_handle to use.
+//  *
+//  * @return RIFF error code. 
+//  */
+// int riff_seekLevelParentNext(struct riff_handle *rh);
 
 /**
  * @brief Validate chunk level structure.
@@ -514,7 +522,8 @@ int riff_levelValidate(struct riff_handle *rh);
 const char *riff_errorToString(int e);
 
 /**
- * @todo Validate all, follow LIST chunks
+ * @todo Validate all, follow LIST chunks (recursive validation)
+ * @todo function for getting amount of chunks in level (would be very useful)
  * @todo Check for duplicate chunk ID in one evel (????????)
  */
 
@@ -570,7 +579,7 @@ int riff_open_file(riff_handle *rh, FILE *f, size_t size);
  * @note Since the memory was allocated by the user, it must be deallocated by the user.
  * 
  * @param rh The riff_handle to initialize.
- * @param f The FILE pointer to read from.
+ * @param memptr The pointer to the memory area to read from.
  * @param size The file size, must be > 0.
  * 
  * @return RIFF error code.

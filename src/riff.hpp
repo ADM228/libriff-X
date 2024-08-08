@@ -34,6 +34,11 @@ enum fileTypes : int {
     CLOSED      = -1
 };
 
+/**
+ * @brief A lightweight wrapper class around riff_handle
+ * 
+ * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
+ */
 class RIFFFile {
     public:
         /**
@@ -73,7 +78,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(const char* __filename, const char * __mode, size_t __size = 0);
+        int open(const char* filename, const char * mode, size_t size = 0);
         /**
          * @brief Open a RIFF file with C's `fopen()`.
          * 
@@ -87,8 +92,8 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int open(const std::string& __filename, const char * __mode, size_t __size = 0) 
-            {return open(__filename.c_str(), __mode, __size);};
+        inline int open(const std::string& filename, const char * mode, size_t size = 0) 
+            {return open(filename.c_str(), mode, size);};
         #if RIFF_CXX17_SUPPORT
         /**
          * @brief Open a RIFF file with C's `fopen()`.
@@ -103,8 +108,8 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int open(const std::filesystem::path& __filename, const char * __mode, size_t __size = 0)
-            {return open(__filename.c_str(), __mode, __size);};
+        inline int open(const std::filesystem::path& filename, const char * mode, size_t size = 0)
+            {return open(filename.c_str(), mode, size);};
         #endif
 
         /**
@@ -115,7 +120,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(const void * __mem_ptr, size_t __size = 0);
+        int open(const void * mem_ptr, size_t size = 0);
 
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
@@ -126,7 +131,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(const char* __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
+        int open(const char* filename, std::ios_base::openmode mode = std::ios_base::in, size_t size = 0);
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
          * 
@@ -136,7 +141,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(const std::string& __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
+        int open(const std::string& filename, std::ios_base::openmode mode = std::ios_base::in, size_t size = 0);
         #if RIFF_CXX17_SUPPORT
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
@@ -147,7 +152,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(const std::filesystem::path& __filename, std::ios_base::openmode __mode = std::ios_base::in, size_t __size = 0);
+        int open(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::in, size_t size = 0);
         #endif
 
         /**
@@ -160,7 +165,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(std::FILE & __file, size_t __size = 0);
+        int open(std::FILE & file, size_t size = 0);
         /**
          * @brief Open a RIFF file from an existing std::fstream object.
          * 
@@ -171,8 +176,13 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(std::fstream & __file, size_t __size = 0);
+        int open(std::fstream & file, size_t size = 0);
 
+        /**
+         * @brief Closes the file.
+         * 
+         * @note Only actually closes the file if it was opened automatically (if it was opened by the user, the user must close it).
+         */
         void close();
 
         ///@}
