@@ -90,7 +90,7 @@
  * 
  * RIFFFile rh;
  * 
- * rh.open(filename, std::ios_base::in);    // Automatically forces binary mode
+ * rh.openFstream(filename); // Automatically detects file size
  * 
  * int errCode = rh.seekInChunk(45);
  * char buffer[72];

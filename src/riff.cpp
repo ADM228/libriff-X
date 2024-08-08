@@ -2,6 +2,7 @@
 #define __RIFF_CPP__
 
 #include "riff.hpp"
+#include <ios>
 
 
 namespace RIFF {
@@ -24,19 +25,21 @@ RIFFFile::~RIFFFile() {
 
 #pragma region openCfile
 
-int RIFFFile::open (const char* __filename, const char * __mode, size_t __size) {
-    auto buffer = std::string(__mode);
-    {
-        bool hasB = 0;
-        for (auto &i : buffer) {if (i == 0x62) hasB = 1;}
-        if (!hasB) buffer+="b";
+int RIFFFile::openCFILE (const char* __filename, bool __detectSize) {
+    file = std::fopen(__filename, "rb");
+    FILE * __file = (FILE *)file;
+    // Detect file size
+    size_t __size = 0;
+    if (__detectSize) {
+        std::fseek(__file, 0, SEEK_END);
+        __size = std::ftell(__file);
+        std::fseek(__file, 0, SEEK_SET);
     }
-    file = std::fopen(buffer.c_str(), __mode);
     type = C_FILE;
     return riff_open_file(rh, (std::FILE *)file, __size);
 }
 
-int RIFFFile::open (std::FILE & __file, size_t __size) {
+int RIFFFile::openCFILE (std::FILE & __file, size_t __size) {
     file = &__file;
     type = C_FILE|MANUAL;
     return riff_open_file(rh, &__file, __size);
@@ -46,7 +49,7 @@ int RIFFFile::open (std::FILE & __file, size_t __size) {
 
 #pragma region openMem 
 
-int RIFFFile::open (const void * __mem_ptr, size_t __size) {
+int RIFFFile::openMemory (const void * __mem_ptr, size_t __size) {
     file = nullptr;
     type = MEM_PTR;
     return riff_open_mem(rh, __mem_ptr, __size);
@@ -70,47 +73,60 @@ size_t seek_fstream(riff_handle *rh, size_t pos){
 	return stream->tellg();
 }
 
-int RIFFFile::open(const char * __filename, std::ios_base::openmode __mode, size_t __size) {
+int RIFFFile::openFstream(const char * __filename, bool __detectSize) {
     // Set type
-    setAutomaticfstream();
-    ((std::fstream*)file)->open(__filename, __mode|std::ios_base::binary);
-    return openFstreamCommon();
+    setAutomaticFstream();
+    auto & stream = *(std::fstream*)file;
+    stream.open(__filename, std::ios_base::in|std::ios_base::binary);
+    return openFstreamCommon(detectFstreamSize(__detectSize));
 }
 
-int RIFFFile::open(const std::string & __filename, std::ios_base::openmode __mode, size_t __size) {
+int RIFFFile::openFstream(const std::string & __filename, bool __detectSize) {
     // Set type
-    setAutomaticfstream();
-    ((std::fstream*)file)->open(__filename, __mode|std::ios_base::binary);
-    return openFstreamCommon();
+    setAutomaticFstream();
+    auto & stream = *(std::fstream*)file;
+    stream.open(__filename, std::ios_base::in|std::ios_base::binary);
+    return openFstreamCommon(detectFstreamSize(__detectSize));
 }
 
 #if RIFF_CXX17_SUPPORT
-int RIFFFile::open(const std::filesystem::path & __filename, std::ios_base::openmode __mode, size_t __size) {
+int RIFFFile::openFstream(const std::filesystem::path & __filename, bool __detectSize) {
     // Set type
-    setAutomaticfstream();
-    ((std::fstream*)file)->open(__filename, __mode|std::ios_base::binary);
-    return openFstreamCommon();
+    setAutomaticFstream();
+    auto & stream = *(std::fstream*)file;
+    stream.open(__filename, std::ios_base::in|std::ios_base::binary);
+    return openFstreamCommon(detectFstreamSize(__detectSize));
 }
 #endif
 
-void RIFFFile::setAutomaticfstream(){
+size_t RIFFFile::detectFstreamSize(bool __detectSize) {
+    if (!__detectSize) return 0;
+
+    auto & stream = *(std::fstream*)file;
+    stream.seekg(0, std::ios_base::end);
+    size_t output = stream.tellg();
+    stream.seekg(0, std::ios_base::beg);
+    return output;
+}
+
+void RIFFFile::setAutomaticFstream(){
     type = FSTREAM;
     file = new std::fstream;
 }
 
-int RIFFFile::open(std::fstream & __file, size_t __size){
+int RIFFFile::openFstream(std::fstream & __file, size_t __size){
     type = FSTREAM|MANUAL;
     file = &__file;
-    return openFstreamCommon();
+    return openFstreamCommon(__size);
 }
 
-int RIFFFile::openFstreamCommon(){
+int RIFFFile::openFstreamCommon(size_t __size){
     auto stream = (std::fstream*)file;
     // My own open function lmfao
     if(rh == NULL)
 		return RIFF_ERROR_INVALID_HANDLE;
 	rh->fh = file;
-	rh->size = 0;
+	rh->size = __size;
 	rh->pos_start = stream->tellg(); //current file offset of stream considered as start of RIFF file
 	
 	rh->fp_read = &read_fstream;

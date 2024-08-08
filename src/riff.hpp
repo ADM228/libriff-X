@@ -14,7 +14,6 @@
 #include <cstdint>
 #include <cstddef>
 #include <cstring>
-#include <iostream>
 extern "C" {
     #include "riff.h"
 }
@@ -39,8 +38,8 @@ enum fileTypes : int {
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
  * 
- * @todo Autodetect file size
  * @todo Copy/move constructors/assignment 
+ * @todo fstream/memory open constructors
  * @todo Internal errors
  */
 class RIFFFile {
@@ -74,89 +73,67 @@ class RIFFFile {
          * 
          * Since it uses C's fopen(), the filename is implementation defined.
          * 
-         * @note Always forces binary mode.
-         * 
          * @param filename Filename in fopen()'s format.
-         * @param mode Modes in fopen()'s format.
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          * 
          * @return RIFF error code.
          */
-        int open(const char* filename, const char * mode, size_t size = 0);
+        int openCFILE(const char* filename, bool detectSize = true);
         /**
          * @brief Open a RIFF file with C's `fopen()`.
          * 
          * Since it uses C's fopen(), the filename is implementation defined.
          * 
-         * @note Always forces binary mode.
-         * 
          * @param filename Filename in fopen()'s format.
-         * @param mode Modes in fopen()'s format.
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          * 
          * @return RIFF error code.
          */
-        inline int open(const std::string& filename, const char * mode, size_t size = 0) 
-            {return open(filename.c_str(), mode, size);};
+        inline int openCFILE(const std::string& filename, bool detectSize = true) 
+            {return openCFILE(filename.c_str(), detectSize);};
         #if RIFF_CXX17_SUPPORT
         /**
          * @brief Open a RIFF file with C's `fopen()`.
          * 
          * Since it uses C's fopen(), the filename is implementation defined.
          * 
-         * @note Always forces binary mode.
-         * 
          * @param filename Filename in fopen()'s format.
-         * @param mode Modes in fopen()'s format.
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          * 
          * @return RIFF error code.
          */
-        inline int open(const std::filesystem::path& filename, const char * mode, size_t size = 0)
-            {return open(filename.c_str(), mode, size);};
+        inline int openCFILE(const std::filesystem::path& filename, bool detectSize = true)
+            {return openCFILE(filename.c_str(), detectSize);};
         #endif
 
         /**
-         * @brief Get RIFF data from a memory pointer.
+         * @brief Open a RIFF file with C++'s std::fstream.
          * 
-         * @param mem_ptr Pointer to the memory buffer with RIFF data.
-         * @param size The expected size of the data, leave at 0 (or don't specify) if unknown.
+         * @param filename Filename in std::fstream's format.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          * 
          * @return RIFF error code.
          */
-        int open(const void * mem_ptr, size_t size = 0);
-
+        int openFstream(const char* filename, bool detectSize = true);
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
          * 
          * @param filename Filename in std::fstream's format.
-         * @param mode Modes in std::fstream's format.
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          * 
          * @return RIFF error code.
          */
-        int open(const char* filename, std::ios_base::openmode mode = std::ios_base::in, size_t size = 0);
-        /**
-         * @brief Open a RIFF file with C++'s std::fstream.
-         * 
-         * @param filename Filename in std::fstream's format.
-         * @param mode Modes in std::fstream's format.
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
-         * 
-         * @return RIFF error code.
-         */
-        int open(const std::string& filename, std::ios_base::openmode mode = std::ios_base::in, size_t size = 0);
+        int openFstream(const std::string& filename, bool detectSize = true);
         #if RIFF_CXX17_SUPPORT
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
          * 
          * @param filename Filename in std::fstream's format.
-         * @param mode Modes in std::fstream's format.
-         * @param size The expected size of the file, leave at 0 (or don't specify) if unknown.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          * 
          * @return RIFF error code.
          */
-        int open(const std::filesystem::path& filename, std::ios_base::openmode mode = std::ios_base::in, size_t size = 0);
+        int openFstream(const std::filesystem::path& filename, bool detectSize = true);
         #endif
 
         /**
@@ -169,7 +146,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(std::FILE & file, size_t size = 0);
+        int openCFILE(std::FILE & file, size_t size = 0);
         /**
          * @brief Open a RIFF file from an existing std::fstream object.
          * 
@@ -180,7 +157,16 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int open(std::fstream & file, size_t size = 0);
+        int openFstream(std::fstream & file, size_t size = 0);
+        /**
+         * @brief Get RIFF data from a memory pointer.
+         * 
+         * @param mem_ptr Pointer to the memory buffer with RIFF data.
+         * @param size The expected size of the data, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
+         */
+        int openMemory(const void * mem_ptr, size_t size = 0);
 
         /**
          * @brief Closes the file.
@@ -336,8 +322,9 @@ class RIFFFile {
 
         int type = CLOSED;
 
-        int openFstreamCommon();
-        void setAutomaticfstream();
+        int openFstreamCommon(size_t);
+        void setAutomaticFstream();
+        size_t detectFstreamSize(bool);
 };
 
 }       // namespace RIFF
