@@ -38,6 +38,10 @@ enum fileTypes : int {
  * @brief A lightweight wrapper class around riff_handle
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
+ * 
+ * @todo Autodetect file size
+ * @todo Copy/move constructors/assignment 
+ * @todo Internal errors
  */
 class RIFFFile {
     public:

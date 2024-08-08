@@ -187,6 +187,37 @@ struct riff_levelStackE {
  * Members are public and intended for read access (to avoid a plethora of get-functions).
  * 
  * Be careful with the level stack, check riff_handle::ls_size first.
+ * 
+ * @todo Recursive validation function
+ * @todo Function for getting amount of chunks in level
+ * @todo murkymark: Check for duplicate chunk ID in one evel (alex note: wtf???????)
+ */
+/**
+ * @todo int riff_seekLevelParent(struct riff_handle *rh); 
+ */
+// /**
+//  * 
+//  * @brief Step back from sub level, seek to start of current chunk
+//  *
+//  * @param rh The riff_handle to use.
+//  *
+//  * @return RIFF error code. 
+//  */
+// int riff_seekLevelParent(struct riff_handle *rh);
+/**
+ * @todo int riff_seekLevelParentNext(struct riff_handle *rh);
+ */
+// /**
+//  * @brief Step back from sub level, seek to start of next chunk
+//  *
+//  * @param rh The riff_handle to use.
+//  *
+//  * @return RIFF error code. 
+//  */
+// int riff_seekLevelParentNext(struct riff_handle *rh);
+/**
+ * @todo Show the current level's info instead of the header (2.0)
+ * @todo Rename riff_handle struct to _riff_handle (2.0)
  */
 typedef struct riff_handle {
 	/**
@@ -217,8 +248,6 @@ typedef struct riff_handle {
 	char h_type[5];
 	/**
 	 * @brief Start position of RIFF file.
-	 * 
-	 * @todo Maybe making it current level would optimize stuff?.
 	 */
 	size_t pos_start;
 	///@}
@@ -470,30 +499,6 @@ int riff_seekLevelSub(struct riff_handle *rh);
 int riff_levelParent(struct riff_handle *rh);
 
 /**
- * @todo int riff_seekLevelParent(struct riff_handle *rh); 
- */
-// /**
-//  * 
-//  * @brief Step back from sub level, seek to start of current chunk
-//  *
-//  * @param rh The riff_handle to use.
-//  *
-//  * @return RIFF error code. 
-//  */
-// int riff_seekLevelParent(struct riff_handle *rh);
-/**
- * @todo int riff_seekLevelParentNext(struct riff_handle *rh);
- */
-// /**
-//  * @brief Step back from sub level, seek to start of next chunk
-//  *
-//  * @param rh The riff_handle to use.
-//  *
-//  * @return RIFF error code. 
-//  */
-// int riff_seekLevelParentNext(struct riff_handle *rh);
-
-/**
  * @brief Validate chunk level structure.
  * 
  * Seeks to the first byte of the current level, then header to header inside of the current chunk level.
@@ -520,12 +525,6 @@ int riff_levelValidate(struct riff_handle *rh);
  * @return Pointer to string with the name of the error.
  */
 const char *riff_errorToString(int e);
-
-/**
- * @todo Validate all, follow LIST chunks (recursive validation)
- * @todo function for getting amount of chunks in level (would be very useful)
- * @todo Check for duplicate chunk ID in one evel (????????)
- */
 
 /**
  * @name I/O Init functions
