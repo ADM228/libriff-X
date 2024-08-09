@@ -16,9 +16,77 @@ RIFFFile::RIFFFile() {
     #endif
 }
 
+// copy assignment
+RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
+    if (&rhs == this)
+		return *this;
+
+    if (rh) die();
+
+    // Copy the riff_handle
+    rh = (riff_handle *)calloc(1, sizeof(riff_handle));
+    memcpy(rh, rhs.rh, sizeof(riff_handle));
+    // Copy the level stack
+    if (rh->ls) {
+        rh->ls = (struct riff_levelStackE *)calloc(rh->ls_size, sizeof(struct riff_levelStackE));
+        memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
+    }
+
+    return *this;
+}
+
+// copy constructor
+RIFFFile::RIFFFile(const RIFFFile &rhs) {
+    // Copy the riff_handle
+    rh = (riff_handle *)calloc(1, sizeof(riff_handle));
+    memcpy(rh, rhs.rh, sizeof(riff_handle));
+    // Copy the level stack
+    if (rh->ls) {
+        rh->ls = (struct riff_levelStackE *)calloc(rh->ls_size, sizeof(struct riff_levelStackE));
+        memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
+    }
+}
+
+// move assignment
+RIFFFile & RIFFFile::operator = (RIFFFile &&rhs) noexcept {
+    if (&rhs == this)
+		return *this;
+
+    if (rh) die();
+
+    file = rhs.file;
+    rh = rhs.rh;
+    type = rhs.type;
+
+    rhs.reset();
+
+    return *this;
+}
+
+// move constructor
+RIFFFile::RIFFFile (RIFFFile &&rhs) noexcept {
+    file = rhs.file;
+    rh = rhs.rh;
+    type = rhs.type;
+
+    rhs.reset();
+}
+
+
 RIFFFile::~RIFFFile() {
+    die();
+}
+
+void RIFFFile::die() {
     riff_handleFree(rh);
     close();
+}
+
+void RIFFFile::reset() {
+    // Set the 3 internal variables
+    file = nullptr;
+    rh = nullptr;
+    type = CLOSED;
 }
 
 #pragma endregion

@@ -38,7 +38,7 @@ enum fileTypes : int {
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
  * 
- * @todo Copy/move constructors/assignment 
+ * @todo Copy/move constructors/assignment from riff_handle
  * @todo fstream/memory open constructors
  * @todo Internal errors
  */
@@ -50,6 +50,46 @@ class RIFFFile {
          * Constructs a new RIFFFile object, allocates a riff_handle for it.
          */
         RIFFFile();
+
+        /**
+         * @brief Copy-construct a new RIFFFile object.
+         * 
+         * Constructs a new RIFFFile object, copies the other RIFFFile object's data (and allocates a new riff_handle for it).
+         * 
+         * @note While it copies the riff_handle data, the file / memory pointer stays the exact same as the old one, meaning 2 RIFFFile objects are accessing the same data!
+         * 
+         * @param rhs The RIFFFile object to copy.
+         */
+        RIFFFile(const RIFFFile &rhs);
+
+        /**
+         * @brief Copy RIFFFile object data.
+         * 
+         * Copies the other RIFFFile object's data (and allocates a new riff_handle for it).
+         * 
+         * @note While it copies the riff_handle data, the file / memory pointer stays the exact same as the old one, meaning 2 RIFFFile objects are accessing the same data!
+         * 
+         * @param rhs The RIFFFile object to copy.
+         */
+        RIFFFile & operator = (const RIFFFile &rhs);
+
+        /**
+         * @brief Move-construct a new RIFFFile object
+         * 
+         * Constructs a new RIFFFile object, moves the other RIFFFile object's data to the new one, sets the other one to factory settings.
+         * 
+         * @param rhs The RIFFFile object to move.
+         */
+        RIFFFile (RIFFFile &&rhs) noexcept;
+
+        /**
+         * @brief Move RIFFFile object data.
+         * 
+         * Moves the other RIFFFile object's data to the new one, sets the other one to factory settings.
+         * 
+         * @param rhs The RIFFFile object to move.
+         */
+        RIFFFile & operator = (RIFFFile &&rhs) noexcept;
 
         /**
          * @brief Destroy the RIFFFile object.
@@ -315,16 +355,19 @@ class RIFFFile {
          * 
          * The pointer to the file object as provided by open() methods
          */
-        void * file;
+        void * file = nullptr;
 
     private:
-        riff_handle * rh;
+        riff_handle * rh = nullptr;
 
         int type = CLOSED;
 
         int openFstreamCommon(size_t);
         void setAutomaticFstream();
         size_t detectFstreamSize(bool);
+
+        void die();
+        void reset();
 };
 
 }       // namespace RIFF
