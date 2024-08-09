@@ -105,7 +105,7 @@ void RIFFFile::reset() {
     file = nullptr;
     rh = nullptr;
     type = CLOSED;
-    latestError = RIFF_ERROR_NONE;
+    __latestError = RIFF_ERROR_NONE;
 }
 
 #pragma endregion
@@ -237,12 +237,14 @@ void RIFFFile::close () {
     type = CLOSED;
 }
 
-std::string RIFFFile::errorToString (int errorCode) {
-    #define posStrSize 2+1+3+1+2+(2*sizeof(size_t))+1
+std::string RIFFFile::latestErrorToString () {
+    #define posStrSize 1+2+1+3+1+2+(2*sizeof(size_t))+1
 
-    std::string outString(riff_errorToString(errorCode));
+    if (__latestError == RIFF_ERROR_NONE) return "";
+
+    std::string outString(riff_errorToString(__latestError));
     char buffer[posStrSize];
-    std::snprintf(buffer, posStrSize, "at pos 0x%zX", rh->pos);
+    std::snprintf(buffer, posStrSize, " at pos 0x%zX", rh->pos);
     std::string posString (buffer);
     outString += posString;
     return outString;
@@ -251,9 +253,8 @@ std::string RIFFFile::errorToString (int errorCode) {
 }
 
 std::vector<uint8_t> RIFFFile::readChunkData() {
-    int errCode;
-    errCode = seekChunkStart(); 
-    if (errCode || rh->c_size == 0) {
+    __latestError = seekChunkStart(); 
+    if (__latestError || rh->c_size == 0) {
         return std::vector<uint8_t>(0);
     }
     auto outVec = std::vector<uint8_t>(rh->c_size);

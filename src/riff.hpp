@@ -38,7 +38,6 @@ enum fileTypes : int {
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
  * 
- * @todo Internal errors
  * @todo fstream/memory open constructors
  */
 class RIFFFile {
@@ -48,7 +47,7 @@ class RIFFFile {
          * 
          * Constructs a new RIFFFile object, allocates a riff_handle for it.
          */
-        RIFFFile();
+        RIFFFile ();
 
         /**
          * @brief Copy-construct a new RIFFFile object.
@@ -59,7 +58,7 @@ class RIFFFile {
          * 
          * @param rhs The RIFFFile object to copy.
          */
-        RIFFFile(const RIFFFile &rhs);
+        RIFFFile (const RIFFFile &rhs);
 
         /**
          * @brief Copy RIFFFile object data.
@@ -95,7 +94,7 @@ class RIFFFile {
          * 
          * Deallocates riff_handle, closes the file, destroys the RIFFFile object.
          */
-        ~RIFFFile();
+        ~RIFFFile ();
 
         /**
          * @defgroup RIFF_CPP C++ RIFF functions
@@ -117,7 +116,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openCFILE(const char* filename, bool detectSize = true);
+        int openCFILE (const char* filename, bool detectSize = true);
         /**
          * @brief Open a RIFF file with C's `fopen()`.
          * 
@@ -128,8 +127,8 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int openCFILE(const std::string& filename, bool detectSize = true) 
-            {return openCFILE(filename.c_str(), detectSize);};
+        inline int openCFILE (const std::string& filename, bool detectSize = true) 
+            {return openCFILE (filename.c_str(), detectSize);};
         #if RIFF_CXX17_SUPPORT
         /**
          * @brief Open a RIFF file with C's `fopen()`.
@@ -141,8 +140,8 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int openCFILE(const std::filesystem::path& filename, bool detectSize = true)
-            {return openCFILE(filename.c_str(), detectSize);};
+        inline int openCFILE (const std::filesystem::path& filename, bool detectSize = true)
+            {return openCFILE (filename.c_str(), detectSize);};
         #endif
 
         /**
@@ -153,7 +152,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openFstream(const char* filename, bool detectSize = true);
+        int openFstream (const char* filename, bool detectSize = true);
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
          * 
@@ -162,7 +161,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openFstream(const std::string& filename, bool detectSize = true);
+        int openFstream (const std::string& filename, bool detectSize = true);
         #if RIFF_CXX17_SUPPORT
         /**
          * @brief Open a RIFF file with C++'s std::fstream.
@@ -172,7 +171,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openFstream(const std::filesystem::path& filename, bool detectSize = true);
+        int openFstream (const std::filesystem::path& filename, bool detectSize = true);
         #endif
 
         /**
@@ -185,7 +184,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openCFILE(std::FILE & file, size_t size = 0);
+        int openCFILE (std::FILE & file, size_t size = 0);
         /**
          * @brief Open a RIFF file from an existing std::fstream object.
          * 
@@ -196,7 +195,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openFstream(std::fstream & file, size_t size = 0);
+        int openFstream (std::fstream & file, size_t size = 0);
         /**
          * @brief Get RIFF data from a memory pointer.
          * 
@@ -205,14 +204,14 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        int openMemory(const void * mem_ptr, size_t size = 0);
+        int openMemory (const void * mem_ptr, size_t size = 0);
 
         /**
          * @brief Closes the file.
          * 
          * @note Only actually closes the file if it was opened automatically (if it was opened by the user, the user must close it).
          */
-        void close();
+        void close ();
 
         ///@}
 
@@ -233,7 +232,7 @@ class RIFFFile {
          * 
          * @return size_t Amount of data read successfully.
          */
-        inline size_t readInChunk (void * to, size_t size) {return riff_readInChunk(rh, to, size);};
+        inline size_t readInChunk (void * to, size_t size) {return __latestError = riff_readInChunk (rh, to, size);};
         /**
          * @brief Read current chunk's data.
          * 
@@ -251,7 +250,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int seekInChunk (size_t size) {return riff_seekInChunk(rh, size);};
+        inline int seekInChunk (size_t size) {return __latestError = riff_seekInChunk (rh, size);};
 
         ///@}
 
@@ -267,13 +266,13 @@ class RIFFFile {
          *
          * @return RIFF error code.
          */
-        inline int seekNextChunk () {return riff_seekNextChunk(rh);};
+        inline int seekNextChunk () {return __latestError = riff_seekNextChunk (rh);};
         /**
          * @brief Seek back to data start of current chunk.
          * 
          * @return RIFF error code.
          */
-        inline int seekChunkStart () {return riff_seekChunkStart (rh);};
+        inline int seekChunkStart () {return __latestError = riff_seekChunkStart (rh);};
         /**
          * @brief Seek to the very first chunk of the file
          * 
@@ -281,7 +280,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int rewind () {return riff_rewind(rh);};
+        inline int rewind () {return __latestError = riff_rewind (rh);};
         /**
          * @brief Seek to the beginning of the current level.
          * 
@@ -289,7 +288,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int seekLevelStart () {return riff_seekLevelStart (rh);};
+        inline int seekLevelStart () {return __latestError = riff_seekLevelStart (rh);};
 
         ///@}
 
@@ -305,7 +304,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int seekLevelSub () {return riff_seekLevelSub(rh);};
+        inline int seekLevelSub () {return __latestError = riff_seekLevelSub (rh);};
         /**
          * @brief Step back from sub list level.
          * 
@@ -313,7 +312,7 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int levelParent () {return riff_levelParent(rh);};
+        inline int levelParent () {return __latestError = riff_levelParent (rh);};
         /**
          * @brief Validate chunk level structure.
          * 
@@ -325,20 +324,27 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline int levelValidate () {return riff_levelValidate(rh);};
+        inline int levelValidate () {return __latestError = riff_levelValidate (rh);};
 
         ///@}
 
         /**
-         * @brief Return error string with position.
-         * 
-         * Includes the position where the problem occured.
+         * @brief Return raw error string.
          * 
          * @param errorCode The error code to print.
          * 
+         * @return Error string.
+         */
+        static inline std::string errorToString (int errorCode) { return riff_errorToString (errorCode); };
+
+        /**
+         * @brief Return latest error's string with position.
+         * 
+         * Includes the position where the problem occured.
+         * 
          * @return Error string with position.
          */
-        std::string errorToString (int errorCode);
+        std::string latestErrorToString ();
 
         /**
          * @brief Access the riff_handle object.
@@ -348,6 +354,13 @@ class RIFFFile {
         inline const riff_handle & operator() () { return *rh; }
 
         ///@}
+
+        /**
+         * @brief Returns the error code of the latest error.
+         * 
+         * @return The latest error.
+         */
+        inline const int latestError() { return __latestError; }
 
         /**
          * @brief File pointer
@@ -361,14 +374,14 @@ class RIFFFile {
 
         int type = CLOSED;
 
-        int latestError = RIFF_ERROR_NONE;
+        int __latestError = RIFF_ERROR_NONE;
 
-        int openFstreamCommon(size_t);
-        void setAutomaticFstream();
-        size_t detectFstreamSize(bool);
+        int openFstreamCommon (size_t);
+        void setAutomaticFstream ();
+        size_t detectFstreamSize (bool);
 
-        void die();
-        void reset();
+        void die ();
+        void reset ();
 };
 
 }       // namespace RIFF
