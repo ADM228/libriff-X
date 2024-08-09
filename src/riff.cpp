@@ -2,12 +2,23 @@
 #define __RIFF_CPP__
 
 #include "riff.hpp"
-#include <ios>
-
 
 namespace RIFF {
 
 #pragma region condes
+
+void * try_calloc(size_t nmemb, size_t size, const char * const objName) {
+    int cnt = 16;
+    void * ptr = nullptr;
+    while (cnt != 0 && ptr == nullptr) {
+        ptr = calloc(nmemb, size);
+    }
+    if (ptr == nullptr) {
+        fprintf(stderr, "Could not allocate %s\n", objName);
+    }
+
+    return ptr;
+}
 
 RIFFFile::RIFFFile() {
     rh = riff_handleAllocate();
@@ -21,16 +32,20 @@ RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
     if (&rhs == this)
 		return *this;
 
+    // Copy the riff_handle
+    auto newrh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFFile");
+    if (newrh == nullptr) return *this;
+    memcpy(rh, rhs.rh, sizeof(riff_handle));
+
+    if (newrh->ls) {
+        newrh->ls = (struct riff_levelStackE *)try_calloc(rh->ls_size, sizeof(struct riff_levelStackE), "riff level stack, aborting copy assignment of RIFFFile");
+        if (newrh->ls == nullptr) return *this;
+        memcpy(newrh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
+    }
+
     if (rh) die();
 
-    // Copy the riff_handle
-    rh = (riff_handle *)calloc(1, sizeof(riff_handle));
-    memcpy(rh, rhs.rh, sizeof(riff_handle));
-    // Copy the level stack
-    if (rh->ls) {
-        rh->ls = (struct riff_levelStackE *)calloc(rh->ls_size, sizeof(struct riff_levelStackE));
-        memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
-    }
+    rh = newrh;
 
     return *this;
 }
@@ -38,11 +53,13 @@ RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
 // copy constructor
 RIFFFile::RIFFFile(const RIFFFile &rhs) {
     // Copy the riff_handle
-    rh = (riff_handle *)calloc(1, sizeof(riff_handle));
+    rh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFFile");
+    if (rh == nullptr) return;
     memcpy(rh, rhs.rh, sizeof(riff_handle));
-    // Copy the level stack
+
     if (rh->ls) {
-        rh->ls = (struct riff_levelStackE *)calloc(rh->ls_size, sizeof(struct riff_levelStackE));
+        rh->ls = (struct riff_levelStackE *)try_calloc(rh->ls_size, sizeof(struct riff_levelStackE), "riff level stack, aborting copy assignment of RIFFFile");
+        if (rh->ls == nullptr) return;
         memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
     }
 }

@@ -136,7 +136,7 @@ uint32_t convUInt32LE(const void *p){
 /*****************************************************************************/
 //read 32 bit LE from file via FP and return as native
 uint32_t readUInt32LE(riff_handle *rh){
-	char buf[4] = {0};
+	char buf[4] = "";	// Init to 0
 	rh->fp_read(rh, buf, 4);
 	rh->pos += 4;
 	rh->c_pos += 4;
@@ -237,7 +237,7 @@ void stack_push(riff_handle *rh, const char *type){
 		if(ls_size_new == 0)
 			ls_size_new = RIFF_LEVEL_ALLOC; //default stack allocation
 		
-		struct riff_levelStackE *lsnew = malloc(ls_size_new * sizeof(struct riff_levelStackE));
+		struct riff_levelStackE *lsnew = (struct riff_levelStackE *)calloc(ls_size_new, sizeof(struct riff_levelStackE));
 		rh->ls_size = ls_size_new;
 		
 		//need to copy?
@@ -267,7 +267,7 @@ void stack_push(riff_handle *rh, const char *type){
 /*****************************************************************************/
 //description: see header file
 riff_handle *riff_handleAllocate(){
-	riff_handle *rh = calloc(1, sizeof(riff_handle));
+	riff_handle *rh = (riff_handle *)calloc(1, sizeof(riff_handle));
 	if(rh != NULL){
 		rh->fp_printf = riff_printf;
 	}
@@ -504,7 +504,7 @@ int riff_seekLevelSub(riff_handle *rh){
 		rh->c_pos = 0;
 	}
 	//read type ID
-	char type[5] = "\0\0\0\0\0";
+	char type[5] = "";	// Init to 0
 	rh->fp_read(rh, type, 4);
 	rh->pos += 4;
 	//verify type ID
