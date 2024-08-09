@@ -45,6 +45,8 @@ RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
 
     if (rh) die();
 
+    // Copy the data
+    memcpy(this, &rhs, sizeof(RIFFFile));
     rh = newrh;
 
     return *this;
@@ -52,6 +54,9 @@ RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
 
 // copy constructor
 RIFFFile::RIFFFile(const RIFFFile &rhs) {
+    // Copy the data
+    memcpy(this, &rhs, sizeof(RIFFFile));
+
     // Copy the riff_handle
     rh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFFile");
     if (rh == nullptr) return;
@@ -71,9 +76,7 @@ RIFFFile & RIFFFile::operator = (RIFFFile &&rhs) noexcept {
 
     if (rh) die();
 
-    file = rhs.file;
-    rh = rhs.rh;
-    type = rhs.type;
+    memcpy(this, &rhs, sizeof(RIFFFile));
 
     rhs.reset();
 
@@ -82,9 +85,7 @@ RIFFFile & RIFFFile::operator = (RIFFFile &&rhs) noexcept {
 
 // move constructor
 RIFFFile::RIFFFile (RIFFFile &&rhs) noexcept {
-    file = rhs.file;
-    rh = rhs.rh;
-    type = rhs.type;
+    memcpy(this, &rhs, sizeof(RIFFFile));
 
     rhs.reset();
 }
@@ -100,10 +101,11 @@ void RIFFFile::die() {
 }
 
 void RIFFFile::reset() {
-    // Set the 3 internal variables
+    // Reset the 4 internal variables
     file = nullptr;
     rh = nullptr;
     type = CLOSED;
+    latestError = RIFF_ERROR_NONE;
 }
 
 #pragma endregion

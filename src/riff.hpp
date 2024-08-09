@@ -38,9 +38,8 @@ enum fileTypes : int {
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
  * 
- * @todo Copy/move constructors/assignment from riff_handle
- * @todo fstream/memory open constructors
  * @todo Internal errors
+ * @todo fstream/memory open constructors
  */
 class RIFFFile {
     public:
@@ -361,6 +360,8 @@ class RIFFFile {
         riff_handle * rh = nullptr;
 
         int type = CLOSED;
+
+        int latestError = RIFF_ERROR_NONE;
 
         int openFstreamCommon(size_t);
         void setAutomaticFstream();
