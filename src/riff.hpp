@@ -325,6 +325,16 @@ class RIFFFile {
          * @return RIFF error code.
          */
         inline int levelValidate () {return __latestError = riff_levelValidate (rh);};
+        /**
+         * @brief Validate file structure.
+         *
+         * Rewinds to the first chunk of the file, then from header to header inside of the current chunk level. If a level can contain subchunks, it is recursively checked.
+         *
+         * File position is changed by this function.
+         * 
+         * @return RIFF error code.
+         */
+        inline int fileValidate () {return __latestError = riff_fileValidate(rh);}
 
         ///@}
 
@@ -335,7 +345,7 @@ class RIFFFile {
          * 
          * @return Error string.
          */
-        static inline std::string errorToString (int errorCode) { return riff_errorToString (errorCode); };
+        static inline std::string errorToString (int errorCode) {return riff_errorToString (errorCode);};
 
         /**
          * @brief Return latest error's string with position.
@@ -351,7 +361,7 @@ class RIFFFile {
          * 
          * @return The riff_handle.
          */
-        inline const riff_handle & operator() () { return *rh; }
+        inline const riff_handle & operator() () {return *rh;}
 
         ///@}
 
@@ -360,7 +370,7 @@ class RIFFFile {
          * 
          * @return The latest error.
          */
-        inline const int latestError() { return __latestError; }
+        inline const int latestError() {return __latestError;}
 
         /**
          * @brief File pointer

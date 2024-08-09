@@ -315,7 +315,7 @@ int riff_readHeader(riff_handle *rh){
 	memcpy(rh->h_type, buf + 8, 4);
 
 
-	if(strcmp(rh->h_id, "RIFF") != 0 && strcmp(rh->h_id, "BW64") != 0) {
+	if(memcmp(rh->h_id, "RIFF", 4) != 0 && memcmp(rh->h_id, "BW64", 4) != 0) {
 		if(rh->fp_printf)
 			rh->fp_printf("Invalid RIFF header\n");
 		return RIFF_ERROR_ILLID;
@@ -484,7 +484,7 @@ int riff_seekLevelSub(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//according to "https://en.wikipedia.org/wiki/Resource_Interchange_File_Format" only RIFF and LIST chunk IDs can contain subchunks
-	if(strcmp(rh->c_id, "LIST") != 0  && strcmp(rh->c_id, "RIFF") != 0 && strcmp(rh->c_id, "BW64") != 0){
+	if(memcmp(rh->c_id, "LIST", 4) != 0  && memcmp(rh->c_id, "RIFF", 4) != 0 && memcmp(rh->c_id, "BW64", 4) != 0){
 		if(rh->fp_printf)
 			rh->fp_printf("%s() failed for chunk ID \"%s\", only RIFF or LIST chunk can contain subchunks", __func__, rh->c_id);
 		return RIFF_ERROR_ILLID;
@@ -543,7 +543,7 @@ int riff_levelValidate(struct riff_handle *rh){
 
 	int r;
 	//seek to start of current list
-	if((r = riff_seekLevelStart(rh))  !=  RIFF_ERROR_NONE)
+	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
 		return r;
 	
 	//seek all chunks of current list level
@@ -557,6 +557,41 @@ int riff_levelValidate(struct riff_handle *rh){
 		}
 	}
 	return RIFF_ERROR_NONE;
+}
+
+/*****************************************************************************/
+
+// Internal function, do not use
+int riff_recursiveLevelValidate(struct riff_handle *rh){
+	int r;
+	while (1) {
+		r = riff_seekNextChunk(rh);
+		if (r != RIFF_ERROR_NONE) {
+			if (r == RIFF_ERROR_EOCL) {
+				// End of chunk list, time to come back
+				return riff_levelParent(rh);
+			} else return r; // Otherwise, some shit occured
+		}
+		if (!(memcmp(rh->c_id, "LIST", 4) != 0 && memcmp(rh->c_id, "RIFF", 4) != 0 && memcmp(rh->c_id, "BW64", 4) != 0)) { // If the chunk can contain subchunks
+			r = riff_seekLevelSub(rh);
+			if (r != RIFF_ERROR_NONE) return r;
+			r = riff_recursiveLevelValidate(rh);
+			if (r != RIFF_ERROR_NONE) return r;
+		}
+	}
+	return RIFF_ERROR_NONE;
+}
+
+int riff_fileValidate(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
+	int r;
+	//seek to start of file
+	if((r = riff_rewind(rh)) != RIFF_ERROR_NONE)
+		return r;
+
+	//seek all chunks
+	return riff_recursiveLevelValidate(rh);
 }
 
 

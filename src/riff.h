@@ -188,7 +188,6 @@ struct riff_levelStackE {
  * 
  * Be careful with the level stack, check riff_handle::ls_size first.
  * 
- * @todo Recursive validation function
  * @todo Function for getting amount of chunks in level
  * @todo murkymark: Check for duplicate chunk ID in one evel (alex note: wtf???????)
  */
@@ -501,10 +500,8 @@ int riff_levelParent(struct riff_handle *rh);
 /**
  * @brief Validate chunk level structure.
  * 
- * Seeks to the first byte of the current level, then header to header inside of the current chunk level.
- * 
- * To check all sub lists you need recursion.
- * 
+ * Seeks to the first byte of the current level, then from header to header inside of the current chunk level.
+ *
  * File position is changed by this function.
  * 
  * @param rh The riff_handle to use.
@@ -512,6 +509,18 @@ int riff_levelParent(struct riff_handle *rh);
  * @return RIFF error code.
  */
 int riff_levelValidate(struct riff_handle *rh);
+
+/**
+ * @brief Validate file structure.
+ *
+ * Rewinds to the first chunk of the file, then from header to header inside of the current chunk level. If a level can contain subchunks, it is recursively checked.
+ *
+ * File position is changed by this function.
+ * 
+ * @param rh The riff_handle to use.
+ * @return RIFF error code.
+ */
+int riff_fileValidate(struct riff_handle *rh);
 
 ///@}
 
