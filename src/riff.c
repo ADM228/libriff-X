@@ -434,7 +434,7 @@ int riff_seekNextChunk(riff_handle *rh){
 
 
 /*****************************************************************************/
-int riff_seekChunkStart(struct riff_handle *rh){
+int riff_seekChunkStart(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//seek data offset 0 in current chunk
@@ -446,7 +446,7 @@ int riff_seekChunkStart(struct riff_handle *rh){
 
 
 /*****************************************************************************/
-int riff_rewind(struct riff_handle *rh){
+int riff_rewind(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//pop stack as much as possible
@@ -457,7 +457,7 @@ int riff_rewind(struct riff_handle *rh){
 }
 
 /*****************************************************************************/
-int riff_seekLevelStart(struct riff_handle *rh){
+int riff_seekLevelStart(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//if in sub list level
@@ -527,7 +527,7 @@ int riff_seekLevelSub(riff_handle *rh){
 
 /*****************************************************************************/
 //description: see header file
-int riff_levelParent(struct riff_handle *rh){
+int riff_levelParent(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	if(rh->ls_level <= 0)
@@ -537,7 +537,7 @@ int riff_levelParent(struct riff_handle *rh){
 }
 
 /*****************************************************************************/
-int riff_seekLevelParentStart(struct riff_handle *rh){
+int riff_seekLevelParentStart(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	int r;
@@ -546,7 +546,7 @@ int riff_seekLevelParentStart(struct riff_handle *rh){
 }
 
 /*****************************************************************************/
-int riff_seekLevelParentNext(struct riff_handle *rh){
+int riff_seekLevelParentNext(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	int r;
@@ -556,7 +556,7 @@ int riff_seekLevelParentNext(struct riff_handle *rh){
 
 
 /*****************************************************************************/
-int riff_levelValidate(struct riff_handle *rh){
+int riff_levelValidate(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	int r;
@@ -580,7 +580,7 @@ int riff_levelValidate(struct riff_handle *rh){
 /*****************************************************************************/
 
 // Internal function, do not use
-int riff_recursiveLevelValidate(struct riff_handle *rh){
+int riff_recursiveLevelValidate(riff_handle *rh){
 	int r;
 	while (1) {
 		r = riff_seekNextChunk(rh);
@@ -600,7 +600,7 @@ int riff_recursiveLevelValidate(struct riff_handle *rh){
 	return RIFF_ERROR_NONE;
 }
 
-int riff_fileValidate(struct riff_handle *rh){
+int riff_fileValidate(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	int r;
@@ -613,7 +613,7 @@ int riff_fileValidate(struct riff_handle *rh){
 }
 
 /*****************************************************************************/
-int32_t riff_amountOfChunksInLevel(struct riff_handle *rh){
+int32_t riff_amountOfChunksInLevel(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	int32_t counter = 0;
@@ -637,7 +637,7 @@ int32_t riff_amountOfChunksInLevel(struct riff_handle *rh){
 }
 
 /*****************************************************************************/
-int32_t riff_amountOfChunksInLevelWithID(struct riff_handle *rh, const char * id){
+int32_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id){
 	checkValidRiffHandle(rh);
 
 	int32_t counter = 0;

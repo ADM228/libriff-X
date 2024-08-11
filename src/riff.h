@@ -177,6 +177,8 @@ struct riff_levelStackE {
 	char c_type[5];
 };
 
+typedef struct __riff_handle riff_handle;
+
 /**
  * @defgroup riff_handle The RIFF handle
  * @{
@@ -189,9 +191,8 @@ struct riff_levelStackE {
  * Be careful with the level stack, check riff_handle::ls_size first. 
  *
  * @todo Show the current level's info instead of the header (2.0)
- * @todo Rename riff_handle struct to _riff_handle (2.0)
  */
-typedef struct riff_handle {
+struct __riff_handle {
 	/**
 	 * @name RIFF file header info.
 	 * 
@@ -317,14 +318,14 @@ typedef struct riff_handle {
 	 * 
 	 * @note Required for proper operation.
 	 */
-	size_t (*fp_read)(struct riff_handle *rh, void *ptr, size_t size);
+	size_t (*fp_read)(riff_handle *rh, void *ptr, size_t size);
 	
 	/**
 	 * @brief Seek position relative to start pos.
 	 * 
 	 * @note Required for proper operation.
 	 */
-	size_t (*fp_seek)(struct riff_handle *rh, size_t pos);
+	size_t (*fp_seek)(riff_handle *rh, size_t pos);
 	
 	/**
 	 * @brief Print error.
@@ -337,7 +338,7 @@ typedef struct riff_handle {
 
 	///@}
 	
-} riff_handle;
+};
 
 ///@}
 
@@ -410,8 +411,8 @@ int riff_seekInChunk(riff_handle *rh, size_t c_pos);
  * 
  * @return RIFF error code.
  */
-int riff_seekNextChunk(struct riff_handle *rh);
-//int riff_seekNextChunkID(struct riff_handle *rh, char *id);  //find and go to next chunk with id (4 byte) in current level, fails if not found - position is invalid then -> maybe not needed, the user can do it via simple loop
+int riff_seekNextChunk(riff_handle *rh);
+//int riff_seekNextChunkID(riff_handle *rh, char *id);  //find and go to next chunk with id (4 byte) in current level, fails if not found - position is invalid then -> maybe not needed, the user can do it via simple loop
 /**
  * @brief Seek to data start of the current chunk.
  * 
@@ -419,7 +420,7 @@ int riff_seekNextChunk(struct riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_seekChunkStart(struct riff_handle *rh);
+int riff_seekChunkStart(riff_handle *rh);
 /**
  * @brief Seek to the very first chunk of the file.
  * 
@@ -429,7 +430,7 @@ int riff_seekChunkStart(struct riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_rewind(struct riff_handle *rh);
+int riff_rewind(riff_handle *rh);
 /**
  * @brief Seek to the beginning of the current level.
  * 
@@ -439,7 +440,7 @@ int riff_rewind(struct riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_seekLevelStart(struct riff_handle *rh);
+int riff_seekLevelStart(riff_handle *rh);
 
 ///@}
 
@@ -457,7 +458,7 @@ int riff_seekLevelStart(struct riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_seekLevelSub(struct riff_handle *rh);
+int riff_seekLevelSub(riff_handle *rh);
 
 /**
  * @brief Step back from sub level.
@@ -468,7 +469,7 @@ int riff_seekLevelSub(struct riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_levelParent(struct riff_handle *rh);
+int riff_levelParent(riff_handle *rh);
 
 /**
  * @brief Step back from sub level, seek to start of current chunk
@@ -477,7 +478,7 @@ int riff_levelParent(struct riff_handle *rh);
  *
  * @return RIFF error code. 
  */
-int riff_seekLevelParentStart(struct riff_handle *rh);
+int riff_seekLevelParentStart(riff_handle *rh);
 
 /**
  * @brief Step back from sub level, seek to start of next chunk
@@ -486,7 +487,7 @@ int riff_seekLevelParentStart(struct riff_handle *rh);
  *
  * @return RIFF error code. 
  */
-int riff_seekLevelParentNext(struct riff_handle *rh);
+int riff_seekLevelParentNext(riff_handle *rh);
 
 ///@}
 
@@ -509,7 +510,7 @@ int riff_seekLevelParentNext(struct riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_levelValidate(struct riff_handle *rh);
+int riff_levelValidate(riff_handle *rh);
 
 /**
  * @brief Validate file structure.
@@ -522,7 +523,7 @@ int riff_levelValidate(struct riff_handle *rh);
  *
  * @return RIFF error code.
  */
-int riff_fileValidate(struct riff_handle *rh);
+int riff_fileValidate(riff_handle *rh);
 
 ///@}
 
@@ -542,7 +543,7 @@ int riff_fileValidate(struct riff_handle *rh);
  *
  * @return The amount of chunks in the current level, or -1 if an error occured.
  */
-int32_t riff_amountOfChunksInLevel(struct riff_handle *rh);
+int32_t riff_amountOfChunksInLevel(riff_handle *rh);
 
 /**
  * @brief Count chunks with a certain ID in current level.
@@ -556,7 +557,7 @@ int32_t riff_amountOfChunksInLevel(struct riff_handle *rh);
  *
  * @return The amount of chunks with the id in the current level, or -1 if an error occured.
  */
-int32_t riff_amountOfChunksInLevelWithID(struct riff_handle *rh, const char * id);
+int32_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id);
 
 ///@}
 
