@@ -37,8 +37,6 @@ enum fileTypes : int {
  * @brief A lightweight wrapper class around riff_handle
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
- * 
- * @todo fstream/memory open constructors
  */
 class RIFFFile {
     public:
@@ -88,6 +86,70 @@ class RIFFFile {
          * @param rhs The RIFFFile object to move.
          */
         RIFFFile & operator = (RIFFFile &&rhs) noexcept;
+
+        /**
+         * @brief Construct a new RIFFFile object and open a file via std::fstream.
+         * 
+         * Constructs a new RIFFFile object and opens a file via std::fstream.
+         *
+         * @param filename Filename in std::fstream's format.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
+         */
+        inline RIFFFile (const char * filename, bool detectSize = true) : RIFFFile() {openFstream(filename, detectSize);};
+
+        /**
+         * @brief Construct a new RIFFFile object and open a file via std::fstream.
+         * 
+         * Constructs a new RIFFFile object and opens a file via std::fstream.
+         *
+         * @param filename Filename in std::fstream's format.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
+         */
+        inline RIFFFile (const std::string & filename, bool detectSize = true) : RIFFFile() {openFstream(filename, detectSize);};
+
+        #if RIFF_CXX17_SUPPORT
+        /**
+         * @brief Construct a new RIFFFile object and open a file via std::fstream.
+         * 
+         * Constructs a new RIFFFile object and opens a file via std::fstream.
+         *
+         * @param filename Filename in std::fstream's format.
+         * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
+         */
+        inline RIFFFile (std::filesystem::path & filename, bool detectSize = true) : RIFFFile() {openFstream(filename, detectSize);};
+        #endif
+
+        /**
+         * @brief Construct a new RIFFFile object and open a RIFF file from an existing C FILE object.
+         * 
+         * @note Since the file object was opened by the user, the close() function of the class will not close the file object.
+         * 
+         * @param file The C FILE object.
+         * @param size The expected size of the file, leave blank if unknown.
+         * 
+         * @return RIFF error code.
+         */
+        inline RIFFFile (std::FILE & file, size_t size = 0) : RIFFFile() {openCFILE(file, size);};
+        /**
+         * @brief Construct a new RIFFFile object and open a RIFF file from an existing std::fstream object.
+         * 
+         * @note Since the file object was opened by the user, the close() function of the class will not close the file object.
+         * 
+         * @param file The std::fstream object.
+         * @param size The expected size of the file, leave blank if unknown.
+         * 
+         * @return RIFF error code.
+         */
+        inline RIFFFile (std::fstream & file, size_t size = 0) : RIFFFile() {openFstream(file, size);};
+        /**
+         * @brief Construct a new RIFFFile object and open RIFF data from a memory pointer.
+         * 
+         * @param mem_ptr Pointer to the memory buffer with RIFF data.
+         * @param size The expected size of the data, leave at 0 (or don't specify) if unknown.
+         * 
+         * @return RIFF error code.
+         */
+        inline RIFFFile (const void * mem_ptr, size_t size = 0) : RIFFFile() {openMemory(mem_ptr, size);};
 
         /**
          * @brief Destroy the RIFFFile object.

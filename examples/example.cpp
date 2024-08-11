@@ -94,7 +94,7 @@ void test(std::fstream & f){
 	f.seekg(0, std::ios_base::beg);
 	
 	//allocate initialized handle struct
-	auto rh = RIFF::RIFFFile();
+	auto rh = RIFF::RIFFFile(f, fsize);
 	
 	//after allocation rh->fp_fprintf == fprintf
 	//you can change the rh->fp_fprintf function pointer here for error output
@@ -102,7 +102,7 @@ void test(std::fstream & f){
 	
 	//open file, use build in input wrappers for file
 	//open RIFF file via file handle -> reads RIFF header and first chunk header
-	if(rh.openFstream(f, fsize) != RIFF_ERROR_NONE){
+	if(rh.latestError() != RIFF_ERROR_NONE){
 		return;
 	}
 	nchunk++; //header can be seen as chunk

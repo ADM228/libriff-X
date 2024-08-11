@@ -88,9 +88,7 @@
  * #include "riff.hpp"
  * #include <iostream>
  * 
- * RIFFFile rh;
- * 
- * rh.openFstream(filename); // Automatically detects file size
+ * RIFF::RIFFFile rh = RIFF::RIFFFile(filename); // Automatically detects file size
  * 
  * rh.seekInChunk(45);
  * char buffer[72];
