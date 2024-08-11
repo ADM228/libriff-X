@@ -92,24 +92,24 @@
  * 
  * rh.openFstream(filename); // Automatically detects file size
  * 
- * int errCode = rh.seekInChunk(45);
+ * rh.seekInChunk(45);
  * char buffer[72];
  * size_t amountRead = rh.readInChunk(buffer, sizeof(buffer));
  * 
- * errCode = rh.seekNextChunk();
+ * rh.seekNextChunk();
  * 
- * errCode = rh.seekLevelStart();
- * while (whatever || errCode == RIFF_ERROR_EOCL) {errCode = rh.seekNextChunk();};  // check for end of chunk list
+ * rh.seekLevelStart();
+ * while (whatever || rh.latestError() == RIFF_ERROR_EOCL) {rh.seekNextChunk();};  // check for end of chunk list
  * 
- * if (errCode) {
- *   std::cerr << rh.errorToString(errCode) << std::endl; // Print the error message to stderr
- *   if (errCode >= RIFF_ERROR_CRITICAL) { // This is how you check if an error is critical
+ * if (rh.latestError()) {  // Errors are tracked internally, this is how you access the error code
+ *   std::cerr << rh.latestErrorToString() << std::endl; // Print the error message to stderr
+ *   if (rh.latestError() >= RIFF_ERROR_CRITICAL) { // This is how you check if an error is critical
  *      return 1;
  *   }
  * }
  * 
- * errCode = rh.seekLevelSub();
- * if (!errCode) {
+ * rh.seekLevelSub();
+ * if (!rh.latestError()) {
  *   // do whatever you want here
  *   errCode = rh.levelParent(); // Step back from sublevel
  * }
