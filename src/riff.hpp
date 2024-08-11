@@ -320,7 +320,7 @@ class RIFFFile {
          * 
          * To check all sub lists you need recursion.
          * 
-         * File position is changed by this function.
+         * @note File position is changed by this function.
          * 
          * @return RIFF error code.
          */
@@ -330,11 +330,42 @@ class RIFFFile {
          *
          * Rewinds to the first chunk of the file, then from header to header inside of the current chunk level. If a level can contain subchunks, it is recursively checked.
          *
-         * File position is changed by this function.
+         * @note File position is changed by this function.
          * 
          * @return RIFF error code.
          */
         inline int fileValidate () {return __latestError = riff_fileValidate(rh);}
+
+        ///@}
+
+        /**
+         * @name Chunk counting functions
+         * @{
+         */
+
+        /**
+         * @brief Count chunks in current level.
+         *
+         * Seeks back to the first chunk of the level, then header to header, counting the chunks. Does not  recursively count subchunks.
+         *
+         * @note File position is changed by this function.
+         *
+         * @return The amount of chunks in the current level, or -1 if an error occured.
+         */
+        inline int32_t amountOfChunksInLevel () {return riff_amountOfChunksInLevel(rh);};
+
+        /**
+         * @brief Count chunks with a certain ID in current level.
+         *
+         * Seeks back to the first chunk of the level, then header to header, counting the chunks with the matching ID. Does not recursively count subchunks.
+         *
+         * @note File position is changed by this function.
+         * 
+         * @param id The chunk ID to match against.
+         *
+         * @return The amount of chunks with the id in the current level, or -1 if an error occured.
+         */
+        inline int32_t amountOfChunksInLevelWithID (const char * id) {return riff_amountOfChunksInLevelWithID(rh, id);};
 
         ///@}
 

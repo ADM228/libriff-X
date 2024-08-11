@@ -186,10 +186,7 @@ struct riff_levelStackE {
  * 
  * Members are public and intended for read access (to avoid a plethora of get-functions).
  * 
- * Be careful with the level stack, check riff_handle::ls_size first.
- * 
- * @todo Function for getting amount of chunks in level
- * @todo murkymark: Check for duplicate chunk ID in one evel (alex note: wtf???????)
+ * Be careful with the level stack, check riff_handle::ls_size first. 
  */
 /**
  * @todo int riff_seekLevelParent(struct riff_handle *rh); 
@@ -502,7 +499,7 @@ int riff_levelParent(struct riff_handle *rh);
  * 
  * Seeks to the first byte of the current level, then from header to header inside of the current chunk level.
  *
- * File position is changed by this function.
+ * @note File position is changed by this function.
  * 
  * @param rh The riff_handle to use.
  * 
@@ -515,12 +512,47 @@ int riff_levelValidate(struct riff_handle *rh);
  *
  * Rewinds to the first chunk of the file, then from header to header inside of the current chunk level. If a level can contain subchunks, it is recursively checked.
  *
- * File position is changed by this function.
+ * @note File position is changed by this function.
  * 
  * @param rh The riff_handle to use.
+ *
  * @return RIFF error code.
  */
 int riff_fileValidate(struct riff_handle *rh);
+
+///@}
+
+/**
+ * @name Chunk counting functions
+ * @{
+ */
+
+/**
+ * @brief Count chunks in current level.
+ *
+ * Seeks back to the first chunk of the level, then header to header, counting the chunks. Does not recursively count subchunks.
+ *
+ * @note File position is changed by this function.
+ * 
+ * @param rh The riff_handle to use.
+ *
+ * @return The amount of chunks in the current level, or -1 if an error occured.
+ */
+int32_t riff_amountOfChunksInLevel(struct riff_handle *rh);
+
+/**
+ * @brief Count chunks with a certain ID in current level.
+ *
+ * Seeks back to the first chunk of the level, then header to header, counting the chunks with the matching ID. Does not recursively count subchunks.
+ *
+ * @note File position is changed by this function.
+ * 
+ * @param rh The riff_handle to use.
+ * @param id The chunk ID to match against.
+ *
+ * @return The amount of chunks with the id in the current level, or -1 if an error occured.
+ */
+int32_t riff_amountOfChunksInLevelWithID(struct riff_handle *rh, const char * id);
 
 ///@}
 

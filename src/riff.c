@@ -594,6 +594,57 @@ int riff_fileValidate(struct riff_handle *rh){
 	return riff_recursiveLevelValidate(rh);
 }
 
+/*****************************************************************************/
+int32_t riff_amountOfChunksInLevel(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
+	int32_t counter = 0;
+	int r;
+	//seek to start of current list
+	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
+		return -1;
+	
+	//seek all chunks of current list level
+	while(1){
+		r = riff_seekNextChunk(rh);
+		if(r != RIFF_ERROR_NONE){
+			if(r == RIFF_ERROR_EOCL){  //just end of list
+				counter++;
+				break;
+			}
+			//error occured
+			return -1;
+		}
+		counter++;
+	}
+	return counter;
+}
+
+/*****************************************************************************/
+int32_t riff_amountOfChunksInLevelWithID(struct riff_handle *rh, const char * id){
+	checkValidRiffHandle(rh);
+
+	int32_t counter = 0;
+	int r;
+	//seek to start of current list
+	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
+		return -1;
+	
+	//seek all chunks of current list level
+	while(1){
+		r = riff_seekNextChunk(rh);
+		if(r != RIFF_ERROR_NONE){
+			if(r == RIFF_ERROR_EOCL){ //just end of list
+				if (!memcmp(rh->c_id, id, 4)) counter++;
+				break;
+			}
+			//error occured
+			return -1;
+		}
+		if (!memcmp(rh->c_id, id, 4)) counter++;
+	}
+	return counter;
+}
 
 /*****************************************************************************/
 //description: see header file
