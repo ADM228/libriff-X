@@ -314,6 +314,33 @@ class RIFFFile {
          */
         inline int levelParent () {return __latestError = riff_levelParent (rh);};
         /**
+         * @brief Step back from sub level, seek to start of current chunk
+         *
+         * @param rh The riff_handle to use.
+         *
+         * @return RIFF error code. 
+         */
+        inline int seekLevelParentStart () {return __latestError = riff_seekLevelParentStart(rh);};
+        /**
+         * @brief Step back from sub level, seek to start of next chunk
+         *
+         * @param rh The riff_handle to use.
+         *
+         * @return RIFF error code. 
+         */
+        inline int seekLevelParentNext () {return __latestError = riff_seekLevelParentNext(rh);};
+
+        ///@}
+
+        /**
+         * @name Validation functions
+         *
+         * By the way, *you* are valid too ;)
+         *
+         * @{ 
+         */
+
+        /**
          * @brief Validate chunk level structure.
          * 
          * Seeks to the first byte of the current level, then header to header inside of the current chunk level.

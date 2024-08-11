@@ -536,6 +536,24 @@ int riff_levelParent(struct riff_handle *rh){
 	return RIFF_ERROR_NONE;
 }
 
+/*****************************************************************************/
+int riff_seekLevelParentStart(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
+	int r;
+	if ((r = riff_levelParent(rh)) != RIFF_ERROR_NONE) return r;
+	return riff_seekChunkStart(rh);
+}
+
+/*****************************************************************************/
+int riff_seekLevelParentNext(struct riff_handle *rh){
+	checkValidRiffHandle(rh);
+
+	int r;
+	if ((r = riff_levelParent(rh)) != RIFF_ERROR_NONE) return r;
+	return riff_seekNextChunk(rh);
+}
+
 
 /*****************************************************************************/
 int riff_levelValidate(struct riff_handle *rh){
