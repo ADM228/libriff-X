@@ -35,9 +35,8 @@ void test_traverse_rec(riff_handle *rh){
 	}
 	else {
 		//output type of parent list chunk
-		struct riff_levelStackE *ls = rh->ls + rh->ls_level - 1;
 		//type ID of sub list is only read, after stepping into it
-		printf(" %sType: %s\n", indent, ls->cl_type);
+		printf(" %sType: %s\n", indent, rh->cl_type);
 	}
 	
 	strncat(indent, " ", sizeof(indent) - strlen(indent) - 1);

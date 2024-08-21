@@ -38,9 +38,8 @@ void test_traverse_rec(RIFF::RIFFFile & rh){
 	}
 	else {
 		//output type of parent list chunk
-		struct riff_levelStackE *ls = rh().ls + rh().ls_level - 1;
 		//type ID of sub list is only read, after stepping into it
-		std::cout << indent << "Type: " << ls->cl_type << std::endl;
+		std::cout << indent << "Type: " << rh().cl_type << std::endl;
 	}
 	
 	indent += " ";

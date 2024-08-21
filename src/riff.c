@@ -111,7 +111,7 @@ int riff_open_mem(riff_handle *rh, const void *ptr, size_t size){
 	
 	rh->fh = (void *)ptr;
 	rh->size = size;
-	//rh->cl_pos_start = 0 //redundant -> passed memory pointer is always expected to point to start of riff file
+	rh->cl_pos_start = 0; // passed memory pointer is always expected to point to start of riff file
 	
 	rh->fp_read = &read_mem;
 	rh->fp_seek = &seek_mem;
@@ -182,14 +182,7 @@ int riff_readChunkHeader(riff_handle *rh){
 	
 	//check if chunk fits into current list level and file, value could be corrupt
 	size_t cposend = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad;
-	
-	size_t listend;
-	if(rh->ls_level > 0){
-		struct riff_levelStackE *ls = rh->ls + (rh->ls_level - 1);
-		listend = ls->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + ls->cl_size; //end of current list level without pad byte
-	}
-	else
-		listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size;
+	size_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size;
 	
 	if(cposend > listend){
 		if(rh->fp_printf)
@@ -218,10 +211,18 @@ void stack_pop(riff_handle *rh){
 	
 	rh->ls_level--;
 	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
+
+	// Actually exchange the params
+	// First put the current chunk level's data back into the chunk fields:
+	memcpy(rh->c_id, rh->cl_id, 4);
+	rh->c_size = rh->cl_size;
+	rh->c_pos_start = rh->cl_pos_start;
+	// Then get the parent level data from the stack:
+	memcpy(rh->cl_id, ls->cl_id, 4);
+	rh->cl_size = ls->cl_size;
+	memcpy(rh->cl_type, ls->cl_type, 4);
+	rh->cl_pos_start = ls->cl_pos_start;
 	
-	rh->c_pos_start = ls->cl_pos_start;
-	memcpy(rh->c_id, ls->cl_id, 4);
-	rh->c_size = ls->cl_size;
 	rh->pad = rh->c_size & 0x1; //pad if chunk sizesize is odd
 	
 	rh->c_pos = rh->pos - rh->c_pos_start - RIFF_CHUNK_DATA_OFFSET;
@@ -252,11 +253,19 @@ void stack_push(riff_handle *rh, const char *type){
 	}
 	
 	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
-	ls->cl_pos_start = rh->c_pos_start;
-	memcpy(ls->cl_id, rh->c_id, 4);
-	ls->cl_size = rh->c_size;
+	// Actually exchange the params
+	// First move the parent level data to the stack:
+	memcpy(ls->cl_id, rh->cl_id, 4);
+	ls->cl_size = rh->cl_size;
+	memcpy(ls->cl_type, rh->cl_type, 4);
+	ls->cl_pos_start = rh->cl_pos_start;
+	// Then put the current chunk's data into the chunk level fields:
+	memcpy(rh->cl_id, rh->c_id, 4);
+	rh->cl_size = rh->c_size;
+	memcpy(rh->cl_type, type, 4);
+	rh->cl_pos_start = rh->c_pos_start;
+
 	//printf("list size %d\n", (rh->ls[rh->ls_level].size));
-	memcpy(ls->cl_type, type, 4);
 	rh->ls_level++;
 }
 
@@ -403,13 +412,7 @@ int riff_seekNextChunk(riff_handle *rh){
 
 	size_t posnew = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad; //expected pos of following chunk
 	
-	size_t listend;
-	if(rh->ls_level > 0){
-		struct riff_levelStackE *ls = rh->ls + (rh->ls_level - 1);
-		listend = ls->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + ls->cl_size; //end of current list level without pad byte
-	}
-	else
-		listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at level 0
+	size_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at level 0
 	
 	//printf("listend %d  posnew %d\n", listend, posnew);  //debug
 	
@@ -459,14 +462,8 @@ int riff_rewind(riff_handle *rh){
 /*****************************************************************************/
 int riff_seekLevelStart(riff_handle *rh){
 	checkValidRiffHandle(rh);
-
-	//if in sub list level
-	if(rh->ls_level > 0)
-		rh->pos = rh->ls[rh->ls_level - 1].cl_pos_start;
-	else
-		rh->pos = rh->cl_pos_start;
-		
-	rh->pos += RIFF_CHUNK_DATA_OFFSET + 4; //pos after type ID of chunk list
+			
+	rh->pos = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + 4; //pos after type ID of chunk list
 	rh->c_pos = 0;
 	rh->fp_seek(rh, rh->pos);
 

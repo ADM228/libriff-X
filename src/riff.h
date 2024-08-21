@@ -189,14 +189,12 @@ typedef struct __riff_handle riff_handle;
  * Members are public and intended for read access (to avoid a plethora of get-functions).
  * 
  * Be careful with the level stack, check riff_handle::ls_size first. 
- *
- * @todo Show the current level's info instead of the header (2.0)
  */
 struct __riff_handle {
 	/**
-	 * @name RIFF file header info.
+	 * @name RIFF chunk level info.
 	 * 
-	 * Available after the file has been opened.
+	 * Available after opening the file, updated with current chunk level's data when interacting with sublevels.
 	 */
 	///@{
 	/**
