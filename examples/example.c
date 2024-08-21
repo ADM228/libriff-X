@@ -30,14 +30,14 @@ void test_traverse_rec(riff_handle *rh){
 	if(rh->ls_level == 0) {
 		printf("CHUNK_ID: TOTAL_CHUNK_SIZE [CHUNK_DATA_FROM_TO_POS]\n");
 		//output RIFF file header
-		printf("%s%s: %zu [%zu..%zu]\n", indent, rh->h_id, rh->h_size, rh->pos_start, rh->pos_start + rh->size);
-		printf(" %sType: %s\n", indent, rh->h_type);
+		printf("%s%s: %zu [%zu..%zu]\n", indent, rh->cl_id, rh->cl_size, rh->cl_pos_start, rh->cl_pos_start + rh->size);
+		printf(" %sType: %s\n", indent, rh->cl_type);
 	}
 	else {
 		//output type of parent list chunk
 		struct riff_levelStackE *ls = rh->ls + rh->ls_level - 1;
 		//type ID of sub list is only read, after stepping into it
-		printf(" %sType: %s\n", indent, ls->c_type);
+		printf(" %sType: %s\n", indent, ls->cl_type);
 	}
 	
 	strncat(indent, " ", sizeof(indent) - strlen(indent) - 1);
@@ -139,7 +139,7 @@ void test(FILE *f){
 		r = riff_rewind(rh);
 	if(r != RIFF_ERROR_NONE)
 		printf("Error: %s\n", riff_errorToString(r));
-	printf("Current pos: %zu (expected: %zu)\n", rh->pos, rh->pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET);
+	printf("Current pos: %zu (expected: %zu)\n", rh->pos, rh->cl_pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET);
 	printf("Current list level: %d\n", rh->ls_level);
 	
 	

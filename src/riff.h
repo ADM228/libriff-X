@@ -154,27 +154,27 @@ Due to the size fields being 4 bytes, this library may not work for RIFF files l
  */
 struct riff_levelStackE {
 	/**
-	 * @brief Absolute parent chunk position in file stream.
-	 */
-	size_t c_pos_start;
-	/**
 	 * @brief ID of parent chunk.
 	 *
 	 * The first 4 bytes of RIFF/LIST chunk data.
 	 */
-	char c_id[5];
+	char cl_id[5];
 	/**
 	 * @brief Parent chunk size.
 	 *
 	 * Without header (contains value as stored in RIFF file).
 	 */
-	size_t c_size;
+	size_t cl_size;
 	/**
 	 * @brief Type ID of parent chunk.
 	 * 
 	 * Should either be RIFF, LIST or BW64.
 	 */
-	char c_type[5];
+	char cl_type[5];
+	/**
+	 * @brief Absolute parent chunk position in file stream.
+	 */
+	size_t cl_pos_start;
 };
 
 typedef struct __riff_handle riff_handle;
@@ -200,29 +200,29 @@ struct __riff_handle {
 	 */
 	///@{
 	/**
-	 * @brief Header ID, should be `"RIFF"`.
+	 * @brief Chunk level ID, should be `"RIFF"`, `"LIST"` or `"BW64"`.
 	 * 
 	 * Contains terminator to be printable.
 	 */
-	char h_id[5];
+	char cl_id[5];
 	/**
-	 * @brief Size value given in header.
+	 * @brief Size value given in LIST chunk.
 	 * 
-	 * h_size + 8 equals to the file size.
+	 * (cl_size of the first level) + 8 equals to the file size.
 	 */
-	size_t h_size;
+	size_t cl_size;
 	/**
-	 * @brief Type ID of file.
+	 * @brief Type ID of chunk level.
 	 * 
 	 * Should contain 4 ASCII characters.
 	 * 
 	 * Also contains terminator to be printable.
 	 */
-	char h_type[5];
+	char cl_type[5];
 	/**
-	 * @brief Start position of RIFF file.
+	 * @brief Start position of current chunk level.
 	 */
-	size_t pos_start;
+	size_t cl_pos_start;
 	///@}
 
 	/**

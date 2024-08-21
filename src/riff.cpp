@@ -214,7 +214,7 @@ int RIFFFile::openFstreamCommon(size_t __size){
 		return RIFF_ERROR_INVALID_HANDLE;
 	rh->fh = file;
 	rh->size = __size;
-	rh->pos_start = stream->tellg(); //current file offset of stream considered as start of RIFF file
+	rh->cl_pos_start = stream->tellg(); //current file offset of stream considered as start of RIFF file
 	
 	rh->fp_read = &read_fstream;
 	rh->fp_seek = &seek_fstream;

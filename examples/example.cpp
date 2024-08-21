@@ -33,14 +33,14 @@ void test_traverse_rec(RIFF::RIFFFile & rh){
 	if(rh().ls_level == 0) {
 		std::cout << "CHUNK_ID: TOTAL_CHUNK_SIZE [CHUNK_DATA_FROM_TO_POS]" << std::endl;
 		//output RIFF file header
-		std::cout << indent << rh().h_id << ": " << rh().h_size << " [" << rh().pos_start << ".." << rh().pos_start + rh().size << "]" << std::endl;
-		std::cout << indent << "Type: " << rh().h_type << std::endl;
+		std::cout << indent << rh().cl_id << ": " << rh().cl_size << " [" << rh().cl_pos_start << ".." << rh().cl_pos_start + rh().size << "]" << std::endl;
+		std::cout << indent << "Type: " << rh().cl_type << std::endl;
 	}
 	else {
 		//output type of parent list chunk
 		struct riff_levelStackE *ls = rh().ls + rh().ls_level - 1;
 		//type ID of sub list is only read, after stepping into it
-		std::cout << indent << "Type: " << ls->c_type << std::endl;
+		std::cout << indent << "Type: " << ls->cl_type << std::endl;
 	}
 	
 	indent += " ";
@@ -141,7 +141,7 @@ void test(std::fstream & f){
 		r = rh.rewind();
 	if(r != RIFF_ERROR_NONE)
 		std::cout << "Error: " << riff_errorToString(r) << std::endl;
-	std::cout << "Current pos: " << rh().pos << " (expected: " << (rh().pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET) << ")" << std::endl;
+	std::cout << "Current pos: " << rh().pos << " (expected: " << (rh().cl_pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET) << ")" << std::endl;
 	std::cout << "Current list level: " << rh().ls_level << std::endl;
 	
 	

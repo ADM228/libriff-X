@@ -80,7 +80,7 @@ int riff_open_file(riff_handle *rh, FILE *f, size_t size){
 	checkValidRiffHandle(rh);
 	rh->fh = f;
 	rh->size = size;
-	rh->pos_start = ftell(f); //current file offset of stream considered as start of RIFF file
+	rh->cl_pos_start = ftell(f); //current file offset of stream considered as start of RIFF file
 	
 	rh->fp_read = &read_file;
 	rh->fp_seek = &seek_file;
@@ -111,7 +111,7 @@ int riff_open_mem(riff_handle *rh, const void *ptr, size_t size){
 	
 	rh->fh = (void *)ptr;
 	rh->size = size;
-	//rh->pos_start = 0 //redundant -> passed memory pointer is always expected to point to start of riff file
+	//rh->cl_pos_start = 0 //redundant -> passed memory pointer is always expected to point to start of riff file
 	
 	rh->fp_read = &read_mem;
 	rh->fp_seek = &seek_mem;
@@ -186,10 +186,10 @@ int riff_readChunkHeader(riff_handle *rh){
 	size_t listend;
 	if(rh->ls_level > 0){
 		struct riff_levelStackE *ls = rh->ls + (rh->ls_level - 1);
-		listend = ls->c_pos_start + RIFF_CHUNK_DATA_OFFSET + ls->c_size; //end of current list level without pad byte
+		listend = ls->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + ls->cl_size; //end of current list level without pad byte
 	}
 	else
-		listend = rh->pos_start + RIFF_CHUNK_DATA_OFFSET + rh->h_size;
+		listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size;
 	
 	if(cposend > listend){
 		if(rh->fp_printf)
@@ -219,9 +219,9 @@ void stack_pop(riff_handle *rh){
 	rh->ls_level--;
 	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
 	
-	rh->c_pos_start = ls->c_pos_start;
-	memcpy(rh->c_id, ls->c_id, 4);
-	rh->c_size = ls->c_size;
+	rh->c_pos_start = ls->cl_pos_start;
+	memcpy(rh->c_id, ls->cl_id, 4);
+	rh->c_size = ls->cl_size;
 	rh->pad = rh->c_size & 0x1; //pad if chunk sizesize is odd
 	
 	rh->c_pos = rh->pos - rh->c_pos_start - RIFF_CHUNK_DATA_OFFSET;
@@ -252,11 +252,11 @@ void stack_push(riff_handle *rh, const char *type){
 	}
 	
 	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
-	ls->c_pos_start = rh->c_pos_start;
-	memcpy(ls->c_id, rh->c_id, 4);
-	ls->c_size = rh->c_size;
+	ls->cl_pos_start = rh->c_pos_start;
+	memcpy(ls->cl_id, rh->c_id, 4);
+	ls->cl_size = rh->c_size;
 	//printf("list size %d\n", (rh->ls[rh->ls_level].size));
-	memcpy(ls->c_type, type, 4);
+	memcpy(ls->cl_type, type, 4);
 	rh->ls_level++;
 }
 
@@ -310,12 +310,12 @@ int riff_readHeader(riff_handle *rh){
 		//printf("%d", n);
 		return RIFF_ERROR_EOF; //return error code
 	}
-	memcpy(rh->h_id, buf, 4);
-	rh->h_size = convUInt32LE(buf + 4);
-	memcpy(rh->h_type, buf + 8, 4);
+	memcpy(rh->cl_id, buf, 4);
+	rh->cl_size = convUInt32LE(buf + 4);
+	memcpy(rh->cl_type, buf + 8, 4);
 
 
-	if(memcmp(rh->h_id, "RIFF", 4) != 0 && memcmp(rh->h_id, "BW64", 4) != 0) {
+	if(memcmp(rh->cl_id, "RIFF", 4) != 0 && memcmp(rh->cl_id, "BW64", 4) != 0) {
 		if(rh->fp_printf)
 			rh->fp_printf("Invalid RIFF header\n");
 		return RIFF_ERROR_ILLID;
@@ -325,7 +325,7 @@ int riff_readHeader(riff_handle *rh){
 	if(r != RIFF_ERROR_NONE)
 		return r;
 
-	if (rh->h_size == 0xFFFFFFFF && !memcmp(rh->c_id, "ds64", 4)) {
+	if (rh->cl_size == 0xFFFFFFFF && !memcmp(rh->c_id, "ds64", 4)) {
 		// It's a 64-bit sized file
 		// Specification can be found at
 		// https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.2088-1-201910-I!!PDF-E.pdf
@@ -338,15 +338,15 @@ int riff_readHeader(riff_handle *rh){
 			}
 			return RIFF_ERROR_ICSIZE;
 		}
-		rh->h_size = ((size_t)convUInt32LE(buf+4) << 32) | convUInt32LE(buf);
+		rh->cl_size = ((size_t)convUInt32LE(buf+4) << 32) | convUInt32LE(buf);
 	}
 	
 	//compare with given file size
 	if(rh->size != 0){
-		if(rh->size != rh->h_size + RIFF_CHUNK_DATA_OFFSET){
+		if(rh->size != rh->cl_size + RIFF_CHUNK_DATA_OFFSET){
 			if(rh->fp_printf)
-				rh->fp_printf("RIFF header chunk size %d doesn't match file size %d!\n", rh->h_size + RIFF_CHUNK_DATA_OFFSET, rh->size);
-			if(rh->size >= rh->h_size + RIFF_CHUNK_DATA_OFFSET)
+				rh->fp_printf("RIFF header chunk size %d doesn't match file size %d!\n", rh->cl_size + RIFF_CHUNK_DATA_OFFSET, rh->size);
+			if(rh->size >= rh->cl_size + RIFF_CHUNK_DATA_OFFSET)
 				return RIFF_ERROR_EXDAT;
 			else
 				//end isn't reached yet and you can parse further
@@ -406,10 +406,10 @@ int riff_seekNextChunk(riff_handle *rh){
 	size_t listend;
 	if(rh->ls_level > 0){
 		struct riff_levelStackE *ls = rh->ls + (rh->ls_level - 1);
-		listend = ls->c_pos_start + RIFF_CHUNK_DATA_OFFSET + ls->c_size; //end of current list level without pad byte
+		listend = ls->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + ls->cl_size; //end of current list level without pad byte
 	}
 	else
-		listend = rh->pos_start + RIFF_CHUNK_DATA_OFFSET + rh->h_size; //at level 0
+		listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at level 0
 	
 	//printf("listend %d  posnew %d\n", listend, posnew);  //debug
 	
@@ -462,9 +462,9 @@ int riff_seekLevelStart(riff_handle *rh){
 
 	//if in sub list level
 	if(rh->ls_level > 0)
-		rh->pos = rh->ls[rh->ls_level - 1].c_pos_start;
+		rh->pos = rh->ls[rh->ls_level - 1].cl_pos_start;
 	else
-		rh->pos = rh->pos_start;
+		rh->pos = rh->cl_pos_start;
 		
 	rh->pos += RIFF_CHUNK_DATA_OFFSET + 4; //pos after type ID of chunk list
 	rh->c_pos = 0;
