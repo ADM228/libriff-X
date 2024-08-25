@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(riff LANGUAGES C CXX)
 
-option(RIFF_STATIC_LIBRARIES "If set to TRUE, will link libriff as a static library, dynamic otherwise. Default is FALSE." $<NOT:${BUILD_SHARED_LIBS}>)
+option(RIFF_STATIC_LIBRARIES "If set to TRUE, will link libriff as a static library, dynamic otherwise. Default value is NOT(BUILD_SHARED_LIBS)." $<NOT:${BUILD_SHARED_LIBS}>)
 option(RIFF_CXX_WRAPPER "If set to TRUE, will enable the C++ wrapper for libriff. Default is FALSE." FALSE)
 option(RIFF_CXX_STD_FILESYSTEM_PATH "If set to TRUE, will enable support for std::filesystem::path arguments in the C++ wrapper for libriff. It is a C++17 feature and requires C++17 support in the host program, otherwise it only requires C++11. Does nothing without RIFF_CXX_WRAPPER set. Default is TRUE." TRUE)
 option(RIFF_CXX_PRINT_ERRORS "If set to TRUE, will enable printing error messages to stdout from the C++ wrapper. Default is TRUE." TRUE)
