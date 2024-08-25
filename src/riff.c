@@ -237,7 +237,7 @@ void stack_push(riff_handle *rh, const char *type){
 		if(ls_size_new == 0)
 			ls_size_new = RIFF_LEVEL_ALLOC; //default stack allocation
 		
-		struct riff_levelStackE *lsnew = (struct riff_levelStackE *)calloc(ls_size_new, sizeof(struct riff_levelStackE));
+		struct riff_levelStackE *lsnew = calloc(ls_size_new, sizeof(struct riff_levelStackE));
 		rh->ls_size = ls_size_new;
 		
 		//need to copy?
@@ -267,7 +267,7 @@ void stack_push(riff_handle *rh, const char *type){
 /*****************************************************************************/
 //description: see header file
 riff_handle *riff_handleAllocate(){
-	riff_handle *rh = (riff_handle *)calloc(1, sizeof(riff_handle));
+	riff_handle *rh = calloc(1, sizeof(riff_handle));
 	if(rh != NULL){
 		rh->fp_printf = riff_printf;
 	}
