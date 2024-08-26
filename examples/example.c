@@ -21,10 +21,9 @@ int nchunk = 0; //number of chunks
 
 void test_traverse_rec(riff_handle *rh){
 	int err;
-	char indent[512*8];  //indentation
+	char indent[512*8] = "";  //indentation
 	
 	//identation for pretty output
-	strcpy(indent, "");
 	for(int i = 0; i < rh->ls_level; i++)
 		snprintf(indent, sizeof(indent), "%s ", indent);
 	
@@ -49,7 +48,7 @@ void test_traverse_rec(riff_handle *rh){
 		printf("%s%s: %zu [%zu..%zu]\n", indent, rh->c_id, rh->c_size, rh->c_pos_start,  rh->c_pos_start + 8 + rh->c_size + rh->pad - 1);
 		
 		//if current chunk not a chunk list
-		if(strncmp(rh->c_id, "LIST", 5) != 0  &&  strncmp(rh->c_id, "RIFF", 5) != 0){
+		if(memcmp(rh->c_id, "LIST", 4) != 0  &&  memcmp(rh->c_id, "RIFF", 4) != 0){
 		}
 		else {
 			//getchar(); //uncomment to press ENTER to continue after a printed chunk

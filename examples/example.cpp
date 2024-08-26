@@ -51,7 +51,7 @@ void test_traverse_rec(RIFF::RIFFFile & rh){
 		std::cout << indent << rh().c_id << ": " <<  rh().c_size << " [" << rh().c_pos_start << ".." << rh().c_pos_start + 8 + rh().c_size + rh().pad - 1 << "]" << std::endl;
 		
 		//if current chunk not a chunk list
-		if(strcmp(rh().c_id, "LIST") != 0  &&  strcmp(rh().c_id, "RIFF") != 0){
+		if(memcmp(rh().c_id, "LIST", 4) != 0  &&  memcmp(rh().c_id, "RIFF", 4) != 0){
 		}
 		else {
 			//getchar(); //uncomment to press ENTER to continue after a printed chunk
