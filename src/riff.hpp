@@ -456,6 +456,17 @@ class RIFFFile {
          */
         inline int32_t amountOfChunksInLevelWithID (const char * id) {return riff_amountOfChunksInLevelWithID(rh, id);};
 
+        /**
+         * @brief Get a riff level stack entry for a specified level.
+         *
+         * @note Returns valid data for the current level as well.
+         * 
+         * @param rh The riff_handle to use.
+         * @param level The level to get the entry of.
+         * @return The pointer to riff level stack entry.
+         */
+        riff_levelStackEntry * getLevelStackEntry(int level) {return riff_getLevelStackEntry(rh, level);};
+
         ///@}
 
         /**

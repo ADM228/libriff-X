@@ -14,7 +14,8 @@
 
 #define RIFF_LEVEL_ALLOC 16  //number of stack elements allocated per step lock more when needing to enlarge (step)
 
-#define checkValidRiffHandle(rh) if (rh == NULL) return RIFF_ERROR_INVALID_HANDLE
+#define checkValidRiffHandleWithRetVal(rh, retval) if (rh == NULL) return retval
+#define checkValidRiffHandle(rh) checkValidRiffHandleWithRetVal(rh, RIFF_ERROR_INVALID_HANDLE)
 
 // Table to translate error codes to strings, corresponds to RIFF_ERROR_... macros
 static const char *riff_es[] = {
@@ -210,7 +211,7 @@ void stack_pop(riff_handle *rh){
 		return;
 	
 	rh->ls_level--;
-	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
+	riff_levelStackEntry *ls = rh->ls + rh->ls_level;
 
 	// Actually exchange the params
 	// First put the current chunk level's data back into the chunk fields:
@@ -238,12 +239,12 @@ void stack_push(riff_handle *rh, const char *type){
 		if(ls_size_new == 0)
 			ls_size_new = RIFF_LEVEL_ALLOC; //default stack allocation
 		
-		struct riff_levelStackE *lsnew = calloc(ls_size_new, sizeof(struct riff_levelStackE));
+		riff_levelStackEntry *lsnew = calloc(ls_size_new, sizeof(riff_levelStackEntry));
 		rh->ls_size = ls_size_new;
 		
 		//need to copy?
 		if(rh->ls_level > 0){
-			memcpy(lsnew, rh->ls, rh->ls_level * sizeof(struct riff_levelStackE));
+			memcpy(lsnew, rh->ls, rh->ls_level * sizeof(riff_levelStackEntry));
 		}
 		
 		//free old
@@ -252,7 +253,7 @@ void stack_push(riff_handle *rh, const char *type){
 		rh->ls = lsnew;
 	}
 	
-	struct riff_levelStackE *ls = rh->ls + rh->ls_level;
+	riff_levelStackEntry *ls = rh->ls + rh->ls_level;
 	// Actually exchange the params
 	// First move the parent level data to the stack:
 	memcpy(ls->cl_id, rh->cl_id, 4);
@@ -655,6 +656,16 @@ int32_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id){
 		}
 	}
 	return counter;
+}
+
+/*****************************************************************************/
+riff_levelStackEntry * getChunkLevelInfo (riff_handle * rh, int level) {
+	checkValidRiffHandleWithRetVal(rh, NULL);
+	if (level > rh->ls_level || level > rh->ls_size) return NULL;
+
+	if (level == rh->ls_level) return (riff_levelStackEntry *)rh;	// The same structure
+	// level < rh->ls_level
+	return rh->ls+level;
 }
 
 /*****************************************************************************/

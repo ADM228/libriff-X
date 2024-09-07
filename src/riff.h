@@ -152,7 +152,7 @@ Due to the size fields being 4 bytes, this library may not work for RIFF files l
  * 
  * (sorta) Contains header info of the parent level.
  */
-struct riff_levelStackE {
+typedef struct __riff_levelStackE {
 	/**
 	 * @brief ID of parent chunk.
 	 *
@@ -175,7 +175,7 @@ struct riff_levelStackE {
 	 * @brief Absolute parent chunk position in file stream.
 	 */
 	size_t cl_pos_start;
-};
+} riff_levelStackEntry;
 
 typedef struct __riff_handle riff_handle;
 
@@ -279,7 +279,7 @@ struct __riff_handle {
 	 * 
 	 * To access the parent chunk data use `ls[ls_level-1]`.
 	 */
-	struct riff_levelStackE *ls;
+	riff_levelStackEntry *ls;
 	/**
 	 * @brief Size of stack in entries.
 	 * 
@@ -556,6 +556,17 @@ int32_t riff_amountOfChunksInLevel(riff_handle *rh);
  * @return The amount of chunks with the id in the current level, or -1 if an error occured.
  */
 int32_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id);
+
+/**
+ * @brief Get a riff level stack entry for a specified level.
+ *
+ * @note Returns valid data for the current level as well.
+ * 
+ * @param rh The riff_handle to use.
+ * @param level The level to get the entry of.
+ * @return The pointer to riff level stack entry.
+ */
+riff_levelStackEntry * riff_getLevelStackEntry(riff_handle *rh, int level);
 
 ///@}
 

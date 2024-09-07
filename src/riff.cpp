@@ -38,9 +38,9 @@ RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
     memcpy(rh, rhs.rh, sizeof(riff_handle));
 
     if (newrh->ls) {
-        newrh->ls = (struct riff_levelStackE *)try_calloc(rh->ls_size, sizeof(struct riff_levelStackE), "riff level stack, aborting copy assignment of RIFFFile");
+        newrh->ls = (riff_levelStackEntry *)try_calloc(rh->ls_size, sizeof(riff_levelStackEntry), "riff level stack, aborting copy assignment of RIFFFile");
         if (newrh->ls == nullptr) return *this;
-        memcpy(newrh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
+        memcpy(newrh->ls, rhs.rh->ls, rh->ls_size * sizeof(riff_levelStackEntry));
     }
 
     if (rh) die();
@@ -63,9 +63,9 @@ RIFFFile::RIFFFile(const RIFFFile &rhs) {
     memcpy(rh, rhs.rh, sizeof(riff_handle));
 
     if (rh->ls) {
-        rh->ls = (struct riff_levelStackE *)try_calloc(rh->ls_size, sizeof(struct riff_levelStackE), "riff level stack, aborting copy assignment of RIFFFile");
+        rh->ls = (riff_levelStackEntry *)try_calloc(rh->ls_size, sizeof(riff_levelStackEntry), "riff level stack, aborting copy assignment of RIFFFile");
         if (rh->ls == nullptr) return;
-        memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(struct riff_levelStackE));
+        memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(riff_levelStackEntry));
     }
 }
 
