@@ -83,12 +83,12 @@
  * 
  * @section Raw_CPP_Usage Example usage with C++ wrapper
  * 
- * The usage is very similar to what is described in the C section above, but done via the RIFFFile class in the RIFF namespace. It also contains `open` methods that open the file for you, as well as std::fstream support. Here's the above example rewritten in code for the C++ wrapper:
+ * The usage is very similar to what is described in the C section above, but done via the RIFFHandle class in the RIFF namespace. It also contains `open` methods that open the file for you, as well as std::fstream support. Here's the above example rewritten in code for the C++ wrapper:
  * ```cpp
  * #include "riff.hpp"
  * #include <iostream>
  * 
- * RIFF::RIFFFile rh = RIFF::RIFFFile(filename); // Automatically detects file size
+ * RIFF::RIFFHandle rh = RIFF::RIFFHandle(filename); // Automatically detects file size
  * 
  * rh.seekInChunk(45);
  * char buffer[72];

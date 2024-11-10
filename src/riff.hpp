@@ -38,89 +38,89 @@ enum fileTypes : int {
  * 
  * This class allows you to forget about the difficulties of manually managing the riff_handle's memory, while still providing very direct access to it (as well as a few wrapper functions).
  */
-class RIFFFile {
+class RIFFHandle {
     public:
         /**
-         * @brief Construct a new RIFFFile object.
+         * @brief Construct a new RIFFHandle object.
          * 
-         * Constructs a new RIFFFile object, allocates a riff_handle for it.
+         * Constructs a new RIFFHandle object, allocates a riff_handle for it.
          */
-        RIFFFile ();
+        RIFFHandle ();
 
         /**
-         * @brief Copy-construct a new RIFFFile object.
+         * @brief Copy-construct a new RIFFHandle object.
          * 
-         * Constructs a new RIFFFile object, copies the other RIFFFile object's data (and allocates a new riff_handle for it).
+         * Constructs a new RIFFHandle object, copies the other RIFFHandle object's data (and allocates a new riff_handle for it).
          * 
-         * @note While it copies the riff_handle data, the file / memory pointer stays the exact same as the old one, meaning 2 RIFFFile objects are accessing the same data!
+         * @note While it copies the riff_handle data, the file / memory pointer stays the exact same as the old one, meaning 2 RIFFHandle objects are accessing the same data!
          * 
-         * @param rhs The RIFFFile object to copy.
+         * @param rhs The RIFFHandle object to copy.
          */
-        RIFFFile (const RIFFFile &rhs);
+        RIFFHandle (const RIFFHandle &rhs);
 
         /**
-         * @brief Copy RIFFFile object data.
+         * @brief Copy RIFFHandle object data.
          * 
-         * Copies the other RIFFFile object's data (and allocates a new riff_handle for it).
+         * Copies the other RIFFHandle object's data (and allocates a new riff_handle for it).
          * 
-         * @note While it copies the riff_handle data, the file / memory pointer stays the exact same as the old one, meaning 2 RIFFFile objects are accessing the same data!
+         * @note While it copies the riff_handle data, the file / memory pointer stays the exact same as the old one, meaning 2 RIFFHandle objects are accessing the same data!
          * 
-         * @param rhs The RIFFFile object to copy.
+         * @param rhs The RIFFHandle object to copy.
          */
-        RIFFFile & operator = (const RIFFFile &rhs);
+        RIFFHandle & operator = (const RIFFHandle &rhs);
 
         /**
-         * @brief Move-construct a new RIFFFile object
+         * @brief Move-construct a new RIFFHandle object
          * 
-         * Constructs a new RIFFFile object, moves the other RIFFFile object's data to the new one, sets the other one to factory settings.
+         * Constructs a new RIFFHandle object, moves the other RIFFHandle object's data to the new one, sets the other one to factory settings.
          * 
-         * @param rhs The RIFFFile object to move.
+         * @param rhs The RIFFHandle object to move.
          */
-        RIFFFile (RIFFFile &&rhs) noexcept;
+        RIFFHandle (RIFFHandle &&rhs) noexcept;
 
         /**
-         * @brief Move RIFFFile object data.
+         * @brief Move RIFFHandle object data.
          * 
-         * Moves the other RIFFFile object's data to the new one, sets the other one to factory settings.
+         * Moves the other RIFFHandle object's data to the new one, sets the other one to factory settings.
          * 
-         * @param rhs The RIFFFile object to move.
+         * @param rhs The RIFFHandle object to move.
          */
-        RIFFFile & operator = (RIFFFile &&rhs) noexcept;
+        RIFFHandle & operator = (RIFFHandle &&rhs) noexcept;
 
         /**
-         * @brief Construct a new RIFFFile object and open a file via std::fstream.
+         * @brief Construct a new RIFFHandle object and open a file via std::fstream.
          * 
-         * Constructs a new RIFFFile object and opens a file via std::fstream.
+         * Constructs a new RIFFHandle object and opens a file via std::fstream.
          *
          * @param filename Filename in std::fstream's format.
          * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          */
-        inline RIFFFile (const char * filename, bool detectSize = true) : RIFFFile() {openFstream(filename, detectSize);};
+        inline RIFFHandle (const char * filename, bool detectSize = true) : RIFFHandle() {openFstream(filename, detectSize);};
 
         /**
-         * @brief Construct a new RIFFFile object and open a file via std::fstream.
+         * @brief Construct a new RIFFHandle object and open a file via std::fstream.
          * 
-         * Constructs a new RIFFFile object and opens a file via std::fstream.
+         * Constructs a new RIFFHandle object and opens a file via std::fstream.
          *
          * @param filename Filename in std::fstream's format.
          * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          */
-        inline RIFFFile (const std::string & filename, bool detectSize = true) : RIFFFile() {openFstream(filename, detectSize);};
+        inline RIFFHandle (const std::string & filename, bool detectSize = true) : RIFFHandle() {openFstream(filename, detectSize);};
 
         #if RIFF_CXX17_SUPPORT
         /**
-         * @brief Construct a new RIFFFile object and open a file via std::fstream.
+         * @brief Construct a new RIFFHandle object and open a file via std::fstream.
          * 
-         * Constructs a new RIFFFile object and opens a file via std::fstream.
+         * Constructs a new RIFFHandle object and opens a file via std::fstream.
          *
          * @param filename Filename in std::fstream's format.
          * @param detectSize Whether to detect the size of the file or leave it unknown to the RIFF handle.
          */
-        inline RIFFFile (std::filesystem::path & filename, bool detectSize = true) : RIFFFile() {openFstream(filename, detectSize);};
+        inline RIFFHandle (std::filesystem::path & filename, bool detectSize = true) : RIFFHandle() {openFstream(filename, detectSize);};
         #endif
 
         /**
-         * @brief Construct a new RIFFFile object and open a RIFF file from an existing C FILE object.
+         * @brief Construct a new RIFFHandle object and open a RIFF file from an existing C FILE object.
          * 
          * @note Since the file object was opened by the user, the close() function of the class will not close the file object.
          * 
@@ -129,9 +129,9 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline RIFFFile (std::FILE & file, size_t size = 0) : RIFFFile() {openCFILE(file, size);};
+        inline RIFFHandle (std::FILE & file, size_t size = 0) : RIFFHandle() {openCFILE(file, size);};
         /**
-         * @brief Construct a new RIFFFile object and open a RIFF file from an existing std::fstream object.
+         * @brief Construct a new RIFFHandle object and open a RIFF file from an existing std::fstream object.
          * 
          * @note Since the file object was opened by the user, the close() function of the class will not close the file object.
          * 
@@ -140,23 +140,23 @@ class RIFFFile {
          * 
          * @return RIFF error code.
          */
-        inline RIFFFile (std::fstream & file, size_t size = 0) : RIFFFile() {openFstream(file, size);};
+        inline RIFFHandle (std::fstream & file, size_t size = 0) : RIFFHandle() {openFstream(file, size);};
         /**
-         * @brief Construct a new RIFFFile object and open RIFF data from a memory pointer.
+         * @brief Construct a new RIFFHandle object and open RIFF data from a memory pointer.
          * 
          * @param mem_ptr Pointer to the memory buffer with RIFF data.
          * @param size The expected size of the data, leave at 0 (or don't specify) if unknown.
          * 
          * @return RIFF error code.
          */
-        inline RIFFFile (const void * mem_ptr, size_t size = 0) : RIFFFile() {openMemory(mem_ptr, size);};
+        inline RIFFHandle (const void * mem_ptr, size_t size = 0) : RIFFHandle() {openMemory(mem_ptr, size);};
 
         /**
-         * @brief Destroy the RIFFFile object.
+         * @brief Destroy the RIFFHandle object.
          * 
-         * Deallocates riff_handle, closes the file, destroys the RIFFFile object.
+         * Deallocates riff_handle, closes the file, destroys the RIFFHandle object.
          */
-        ~RIFFFile ();
+        ~RIFFHandle ();
 
         /**
          * @defgroup RIFF_CPP C++ RIFF functions

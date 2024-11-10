@@ -20,7 +20,7 @@ void * try_calloc(size_t nmemb, size_t size, const char * const objName) {
     return ptr;
 }
 
-RIFFFile::RIFFFile() {
+RIFFHandle::RIFFHandle() {
     rh = riff_handleAllocate();
     #if !RIFF_CXX_PRINT_ERRORS
         rh->fp_printf = NULL;
@@ -28,17 +28,17 @@ RIFFFile::RIFFFile() {
 }
 
 // copy assignment
-RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
+RIFFHandle & RIFFHandle::operator = (const RIFFHandle &rhs) {
     if (&rhs == this)
 		return *this;
 
     // Copy the riff_handle
-    auto newrh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFFile");
+    auto newrh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFHandle");
     if (newrh == nullptr) return *this;
     memcpy(rh, rhs.rh, sizeof(riff_handle));
 
     if (newrh->ls) {
-        newrh->ls = (riff_levelStackEntry *)try_calloc(rh->ls_size, sizeof(riff_levelStackEntry), "riff level stack, aborting copy assignment of RIFFFile");
+        newrh->ls = (riff_levelStackEntry *)try_calloc(rh->ls_size, sizeof(riff_levelStackEntry), "riff level stack, aborting copy assignment of RIFFHandle");
         if (newrh->ls == nullptr) return *this;
         memcpy(newrh->ls, rhs.rh->ls, rh->ls_size * sizeof(riff_levelStackEntry));
     }
@@ -46,37 +46,37 @@ RIFFFile & RIFFFile::operator = (const RIFFFile &rhs) {
     if (rh) die();
 
     // Copy the data
-    memcpy(this, &rhs, sizeof(RIFFFile));
+    memcpy(this, &rhs, sizeof(RIFFHandle));
     rh = newrh;
 
     return *this;
 }
 
 // copy constructor
-RIFFFile::RIFFFile(const RIFFFile &rhs) {
+RIFFHandle::RIFFHandle(const RIFFHandle &rhs) {
     // Copy the data
-    memcpy(this, &rhs, sizeof(RIFFFile));
+    memcpy(this, &rhs, sizeof(RIFFHandle));
 
     // Copy the riff_handle
-    rh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFFile");
+    rh = (riff_handle *)try_calloc(1, sizeof(riff_handle), "riff_handle, aborting copy assignment of RIFFHandle");
     if (rh == nullptr) return;
     memcpy(rh, rhs.rh, sizeof(riff_handle));
 
     if (rh->ls) {
-        rh->ls = (riff_levelStackEntry *)try_calloc(rh->ls_size, sizeof(riff_levelStackEntry), "riff level stack, aborting copy assignment of RIFFFile");
+        rh->ls = (riff_levelStackEntry *)try_calloc(rh->ls_size, sizeof(riff_levelStackEntry), "riff level stack, aborting copy assignment of RIFFHandle");
         if (rh->ls == nullptr) return;
         memcpy(rh->ls, rhs.rh->ls, rh->ls_size * sizeof(riff_levelStackEntry));
     }
 }
 
 // move assignment
-RIFFFile & RIFFFile::operator = (RIFFFile &&rhs) noexcept {
+RIFFHandle & RIFFHandle::operator = (RIFFHandle &&rhs) noexcept {
     if (&rhs == this)
 		return *this;
 
     if (rh) die();
 
-    memcpy(this, &rhs, sizeof(RIFFFile));
+    memcpy(this, &rhs, sizeof(RIFFHandle));
 
     rhs.reset();
 
@@ -84,23 +84,23 @@ RIFFFile & RIFFFile::operator = (RIFFFile &&rhs) noexcept {
 }
 
 // move constructor
-RIFFFile::RIFFFile (RIFFFile &&rhs) noexcept {
-    memcpy(this, &rhs, sizeof(RIFFFile));
+RIFFHandle::RIFFHandle (RIFFHandle &&rhs) noexcept {
+    memcpy(this, &rhs, sizeof(RIFFHandle));
 
     rhs.reset();
 }
 
 
-RIFFFile::~RIFFFile() {
+RIFFHandle::~RIFFHandle() {
     die();
 }
 
-void RIFFFile::die() {
+void RIFFHandle::die() {
     riff_handleFree(rh);
     close();
 }
 
-void RIFFFile::reset() {
+void RIFFHandle::reset() {
     // Reset the 4 internal variables
     file = nullptr;
     rh = nullptr;
@@ -112,7 +112,7 @@ void RIFFFile::reset() {
 
 #pragma region openCfile
 
-int RIFFFile::openCFILE (const char* __filename, bool __detectSize) {
+int RIFFHandle::openCFILE (const char* __filename, bool __detectSize) {
     file = std::fopen(__filename, "rb");
     FILE * __file = (FILE *)file;
     // Detect file size
@@ -126,7 +126,7 @@ int RIFFFile::openCFILE (const char* __filename, bool __detectSize) {
     return riff_open_file(rh, (std::FILE *)file, __size);
 }
 
-int RIFFFile::openCFILE (std::FILE & __file, size_t __size) {
+int RIFFHandle::openCFILE (std::FILE & __file, size_t __size) {
     file = &__file;
     type = C_FILE|MANUAL;
     return riff_open_file(rh, &__file, __size);
@@ -136,7 +136,7 @@ int RIFFFile::openCFILE (std::FILE & __file, size_t __size) {
 
 #pragma region openMem 
 
-int RIFFFile::openMemory (const void * __mem_ptr, size_t __size) {
+int RIFFHandle::openMemory (const void * __mem_ptr, size_t __size) {
     file = nullptr;
     type = MEM_PTR;
     return riff_open_mem(rh, __mem_ptr, __size);
@@ -160,7 +160,7 @@ size_t seek_fstream(riff_handle *rh, size_t pos){
 	return stream->tellg();
 }
 
-int RIFFFile::openFstream(const char * __filename, bool __detectSize) {
+int RIFFHandle::openFstream(const char * __filename, bool __detectSize) {
     // Set type
     setAutomaticFstream();
     auto & stream = *(std::fstream*)file;
@@ -168,7 +168,7 @@ int RIFFFile::openFstream(const char * __filename, bool __detectSize) {
     return openFstreamCommon(detectFstreamSize(__detectSize));
 }
 
-int RIFFFile::openFstream(const std::string & __filename, bool __detectSize) {
+int RIFFHandle::openFstream(const std::string & __filename, bool __detectSize) {
     // Set type
     setAutomaticFstream();
     auto & stream = *(std::fstream*)file;
@@ -177,7 +177,7 @@ int RIFFFile::openFstream(const std::string & __filename, bool __detectSize) {
 }
 
 #if RIFF_CXX17_SUPPORT
-int RIFFFile::openFstream(const std::filesystem::path & __filename, bool __detectSize) {
+int RIFFHandle::openFstream(const std::filesystem::path & __filename, bool __detectSize) {
     // Set type
     setAutomaticFstream();
     auto & stream = *(std::fstream*)file;
@@ -186,7 +186,7 @@ int RIFFFile::openFstream(const std::filesystem::path & __filename, bool __detec
 }
 #endif
 
-size_t RIFFFile::detectFstreamSize(bool __detectSize) {
+size_t RIFFHandle::detectFstreamSize(bool __detectSize) {
     if (!__detectSize) return 0;
 
     auto & stream = *(std::fstream*)file;
@@ -196,18 +196,18 @@ size_t RIFFFile::detectFstreamSize(bool __detectSize) {
     return output;
 }
 
-void RIFFFile::setAutomaticFstream(){
+void RIFFHandle::setAutomaticFstream(){
     type = FSTREAM;
     file = new std::fstream;
 }
 
-int RIFFFile::openFstream(std::fstream & __file, size_t __size){
+int RIFFHandle::openFstream(std::fstream & __file, size_t __size){
     type = FSTREAM|MANUAL;
     file = &__file;
     return openFstreamCommon(__size);
 }
 
-int RIFFFile::openFstreamCommon(size_t __size){
+int RIFFHandle::openFstreamCommon(size_t __size){
     auto stream = (std::fstream*)file;
     // My own open function lmfao
     if(rh == NULL)
@@ -224,7 +224,7 @@ int RIFFFile::openFstreamCommon(size_t __size){
 
 #pragma endregion
 
-void RIFFFile::close () {
+void RIFFHandle::close () {
     if (!(type & MANUAL)) { // Must be automatically allocated to close
         if (type == C_FILE) {
             std::fclose((std::FILE *)file);
@@ -237,7 +237,7 @@ void RIFFFile::close () {
     type = CLOSED;
 }
 
-std::string RIFFFile::latestErrorToString () {
+std::string RIFFHandle::latestErrorToString () {
     #define posStrSize 1+2+1+3+1+2+(2*sizeof(size_t))+1
 
     if (__latestError == RIFF_ERROR_NONE) return "";
@@ -252,7 +252,7 @@ std::string RIFFFile::latestErrorToString () {
     #undef posStrSize
 }
 
-std::vector<uint8_t> RIFFFile::readChunkData() {
+std::vector<uint8_t> RIFFHandle::readChunkData() {
     __latestError = seekChunkStart(); 
     if (__latestError || rh->c_size == 0) {
         return std::vector<uint8_t>(0);

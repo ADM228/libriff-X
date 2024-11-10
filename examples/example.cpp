@@ -22,7 +22,7 @@ int nchunk = 0; //number of chunks
 
 
 
-void test_traverse_rec(RIFF::RIFFFile & rh){
+void test_traverse_rec(RIFF::RIFFHandle & rh){
 	int err;
 	std::string indent = "";  //indentation
 	
@@ -93,7 +93,7 @@ void test(std::fstream & f){
 	f.seekg(0, std::ios_base::beg);
 	
 	//allocate initialized handle struct
-	auto rh = RIFF::RIFFFile(f, fsize);
+	auto rh = RIFF::RIFFHandle(f, fsize);
 	
 	//after allocation rh->fp_fprintf == fprintf
 	//you can change the rh->fp_fprintf function pointer here for error output
