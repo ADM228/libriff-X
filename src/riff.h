@@ -40,9 +40,49 @@ Due to the size fields being 4 bytes, this library may not work for RIFF files l
 #ifndef _RIFF_H_
 #define _RIFF_H_
 
+/**
+ * Before all else, let's check the OS for the functions to use
+ */
+#if RIFF_64BIT_FILESIZE_SUPPORT
+	#if defined (__unix__) || (defined (__APPLE__) && defined (__MACH__))
+		#define _FILE_OFFSET_BITS 64
+		#define __RIFF_FSEEK fseeko
+		#define __RIFF_FTELL ftello
+	#elif defined(_MSC_VER)
+		#define __RIFF_FSEEK _fseeki64
+		#define __RIFF_FTELL _ftelli64
+	#else
+		#warning "Your system is not Windows nor POSIX. 64-bit filesizes may or may not be supported."
+		#define __RIFF_FSEEK fseek
+		#define __RIFF_FTELL ftell
+	#endif
+#else
+	#define __RIFF_FSEEK fseek
+	#define __RIFF_FTELL ftell
+#endif
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
+
+#if RIFF_64BIT_FILESIZE_SUPPORT
+/**
+ * The RIFF file size types
+ */
+typedef uint64_t riff_ufs_t;
+typedef int64_t riff_sfs_t;
+
+#define __RIFF_FS_FMT PRIu64
+#else
+/**
+ * The RIFF file size types
+ */
+typedef uint32_t riff_ufs_t;
+typedef int32_t riff_sfs_t;
+
+#define __RIFF_FS_FMT PRIu32
+#endif
 
 /**
  * @brief Size of RIFF file header and RIFF/LIST chunks that contain subchunks.
@@ -145,6 +185,7 @@ Due to the size fields being 4 bytes, this library may not work for RIFF files l
 
 ///@}
 
+
 /**
  * @brief Level stack entry struct.
  *
@@ -164,7 +205,7 @@ typedef struct __riff_levelStackE {
 	 *
 	 * Without header (contains value as stored in RIFF file).
 	 */
-	size_t cl_size;
+	riff_ufs_t cl_size;
 	/**
 	 * @brief Type ID of parent chunk.
 	 * 
@@ -174,7 +215,7 @@ typedef struct __riff_levelStackE {
 	/**
 	 * @brief Absolute parent chunk position in file stream.
 	 */
-	size_t cl_pos_start;
+	riff_ufs_t cl_pos_start;
 } riff_levelStackEntry;
 
 typedef struct __riff_handle riff_handle;
@@ -208,7 +249,7 @@ struct __riff_handle {
 	 * 
 	 * (cl_size of the first level) + 8 equals to the file size.
 	 */
-	size_t cl_size;
+	riff_ufs_t cl_size;
 	/**
 	 * @brief Type ID of chunk level.
 	 * 
@@ -220,7 +261,7 @@ struct __riff_handle {
 	/**
 	 * @brief Start position of current chunk level.
 	 */
-	size_t cl_pos_start;
+	riff_ufs_t cl_pos_start;
 	///@}
 
 	/**
@@ -228,11 +269,11 @@ struct __riff_handle {
 	 * 
 	 * 0 means unspecified.
 	 */
-	size_t size;
+	riff_ufs_t size;
 	/**
 	 * @brief Current position in data stream.
 	 */
-	size_t pos;
+	riff_ufs_t pos;
 	
 	/**
 	 * @name Current chunk's data.
@@ -241,13 +282,13 @@ struct __riff_handle {
 	/**
 	 * @brief Absolute start position of current chunk.
 	 */
-	size_t c_pos_start;
+	riff_ufs_t c_pos_start;
 	/**
 	 * @brief Position in current chunk.
 	 * 
 	 * Relative to the start of the chunk's data block.
 	 */
-	size_t c_pos;
+	riff_ufs_t c_pos;
 	/**
 	 * @brief ID of current chunk.
 	 * 
@@ -259,7 +300,7 @@ struct __riff_handle {
 	 * 
 	 * Excludes chunk header - same value as stored in RIFF file.
 	 */
-	size_t c_size;
+	riff_ufs_t c_size;
 	/**
 	 * @brief Pad byte.
 	 * 
@@ -323,7 +364,7 @@ struct __riff_handle {
 	 * 
 	 * @note Required for proper operation.
 	 */
-	size_t (*fp_seek)(riff_handle *rh, size_t pos);
+	riff_ufs_t (*fp_seek)(riff_handle *rh, riff_ufs_t pos);
 	
 	/**
 	 * @brief Print error.
@@ -392,7 +433,7 @@ size_t riff_readInChunk(riff_handle *rh, void *to, size_t size);
  *
  * @note Only counts the actual data section of the chunk - position 0 is first byte after chunk size (chunk offset 8).
  */
-int riff_seekInChunk(riff_handle *rh, size_t c_pos);
+int riff_seekInChunk(riff_handle *rh, riff_ufs_t c_pos);
 
 ///@}
 
@@ -541,7 +582,7 @@ int riff_fileValidate(riff_handle *rh);
  *
  * @return The amount of chunks in the current level, or -1 if an error occured.
  */
-int32_t riff_amountOfChunksInLevel(riff_handle *rh);
+riff_sfs_t riff_amountOfChunksInLevel(riff_handle *rh);
 
 /**
  * @brief Count chunks with a certain ID in current level.
@@ -555,7 +596,7 @@ int32_t riff_amountOfChunksInLevel(riff_handle *rh);
  *
  * @return The amount of chunks with the id in the current level, or -1 if an error occured.
  */
-int32_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id);
+riff_sfs_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id);
 
 /**
  * @brief Get a riff level stack entry for a specified level.
@@ -625,7 +666,7 @@ int riff_readHeader(riff_handle *rh);
  * 
  * @return RIFF error code.
  */
-int riff_open_file(riff_handle *rh, FILE *f, size_t size);
+int riff_open_file(riff_handle *rh, FILE *f, riff_ufs_t size);
 
 /**
  * @brief Initialize RIFF handle and set up FPs for memory access.
@@ -638,13 +679,13 @@ int riff_open_file(riff_handle *rh, FILE *f, size_t size);
  * 
  * @return RIFF error code.
  */
-int riff_open_mem(riff_handle *rh, const void *memptr, size_t size);
+int riff_open_mem(riff_handle *rh, const void *memptr, riff_ufs_t size);
 
 
 //user open - must handle "riff_handle" allocation and setup
 // e.g. for file access via network socket
 // see and use "riff_open_file()" definition as template
-// "int open_user(riff_handle *h, FOO, size_t size)";
+// "int open_user(riff_handle *h, FOO, riff_ufs_t size)";
 
 ///@}
 

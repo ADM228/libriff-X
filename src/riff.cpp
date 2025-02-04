@@ -116,7 +116,7 @@ int RIFFHandle::openCFILE (const char* __filename, bool __detectSize) {
     file = std::fopen(__filename, "rb");
     FILE * __file = (FILE *)file;
     // Detect file size
-    size_t __size = 0;
+    riff_ufs_t __size = 0;
     if (__detectSize) {
         std::fseek(__file, 0, SEEK_END);
         __size = std::ftell(__file);
@@ -126,7 +126,7 @@ int RIFFHandle::openCFILE (const char* __filename, bool __detectSize) {
     return riff_open_file(rh, (std::FILE *)file, __size);
 }
 
-int RIFFHandle::openCFILE (std::FILE & __file, size_t __size) {
+int RIFFHandle::openCFILE (std::FILE & __file, riff_ufs_t __size) {
     file = &__file;
     type = C_FILE|MANUAL;
     return riff_open_file(rh, &__file, __size);
@@ -136,7 +136,7 @@ int RIFFHandle::openCFILE (std::FILE & __file, size_t __size) {
 
 #pragma region openMem 
 
-int RIFFHandle::openMemory (const void * __mem_ptr, size_t __size) {
+int RIFFHandle::openMemory (const void * __mem_ptr, riff_ufs_t __size) {
     file = nullptr;
     type = MEM_PTR;
     return riff_open_mem(rh, __mem_ptr, __size);
@@ -148,13 +148,13 @@ int RIFFHandle::openMemory (const void * __mem_ptr, size_t __size) {
 
 size_t read_fstream(riff_handle *rh, void *ptr, size_t size){
     auto stream = ((std::fstream *)rh->fh);
-    size_t oldg = stream->tellg();
+    riff_ufs_t oldg = stream->tellg();
     stream->read((char *)ptr, size);
-    size_t newg = stream->tellg();
+    riff_ufs_t newg = stream->tellg();
     return newg-oldg;
 }
 
-size_t seek_fstream(riff_handle *rh, size_t pos){
+riff_ufs_t seek_fstream(riff_handle *rh, riff_ufs_t pos){
     auto stream = ((std::ifstream *)rh->fh);
     stream->seekg(pos);
 	return stream->tellg();
@@ -186,12 +186,12 @@ int RIFFHandle::openFstream(const std::filesystem::path & __filename, bool __det
 }
 #endif
 
-size_t RIFFHandle::detectFstreamSize(bool __detectSize) {
+riff_ufs_t RIFFHandle::detectFstreamSize(bool __detectSize) {
     if (!__detectSize) return 0;
 
     auto & stream = *(std::fstream*)file;
     stream.seekg(0, std::ios_base::end);
-    size_t output = stream.tellg();
+    riff_ufs_t output = stream.tellg();
     stream.seekg(0, std::ios_base::beg);
     return output;
 }
@@ -201,13 +201,13 @@ void RIFFHandle::setAutomaticFstream(){
     file = new std::fstream;
 }
 
-int RIFFHandle::openFstream(std::fstream & __file, size_t __size){
+int RIFFHandle::openFstream(std::fstream & __file, riff_ufs_t __size){
     type = FSTREAM|MANUAL;
     file = &__file;
     return openFstreamCommon(__size);
 }
 
-int RIFFHandle::openFstreamCommon(size_t __size){
+int RIFFHandle::openFstreamCommon(riff_ufs_t __size){
     auto stream = (std::fstream*)file;
     // My own open function lmfao
     if(rh == NULL)
@@ -238,13 +238,13 @@ void RIFFHandle::close () {
 }
 
 std::string RIFFHandle::latestErrorToString () {
-    #define posStrSize 1+2+1+3+1+2+(2*sizeof(size_t))+1
+    #define posStrSize 1+2+1+3+1+2+(2*sizeof(riff_ufs_t))+1
 
     if (__latestError == RIFF_ERROR_NONE) return "";
 
     std::string outString(riff_errorToString(__latestError));
     char buffer[posStrSize];
-    std::snprintf(buffer, posStrSize, " at pos 0x%zX", rh->pos);
+    std::snprintf(buffer, posStrSize, " at pos 0x%" __RIFF_FS_FMT "X", rh->pos);
     std::string posString (buffer);
     outString += posString;
     return outString;
@@ -258,14 +258,14 @@ std::vector<uint8_t> RIFFHandle::readChunkData() {
         return std::vector<uint8_t>(0);
     }
     auto outVec = std::vector<uint8_t>(rh->c_size);
-    size_t totalSize = 0, succSize;
+    riff_ufs_t totalSize = 0, succSize;
     do {
         succSize = readInChunk(outVec.data()+totalSize, rh->c_size);
         totalSize += succSize;
     } while (succSize != 0);
 #if RIFF_CXX_PRINT_ERRORS
     if (totalSize != rh->c_size && rh->fp_printf) {
-        rh->fp_printf("Couldn't read the entire chunk for some reason. Successfully read %zu bytes out of %zu\n", totalSize, rh->c_size);
+        rh->fp_printf("Couldn't read the entire chunk for some reason. Successfully read %zu bytes out of %" __RIFF_FS_FMT "\n", totalSize, rh->c_size);
     } 
 #endif
     return outVec;

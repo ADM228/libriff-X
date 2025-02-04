@@ -70,18 +70,18 @@ size_t read_file(riff_handle *rh, void *ptr, size_t size){
 }
 
 /*****************************************************************************/
-size_t seek_file(riff_handle *rh, size_t pos){
-	fseek((FILE*)(rh->fh), pos, SEEK_SET);
+riff_ufs_t seek_file(riff_handle *rh, riff_ufs_t pos){
+	__RIFF_FSEEK((FILE*)(rh->fh), pos, SEEK_SET);
 	return pos;
 }
 
 /*****************************************************************************/
 //description: see header file
-int riff_open_file(riff_handle *rh, FILE *f, size_t size){
+int riff_open_file(riff_handle *rh, FILE *f, riff_ufs_t size){
 	checkValidRiffHandle(rh);
 	rh->fh = f;
 	rh->size = size;
-	rh->cl_pos_start = ftell(f); //current file offset of stream considered as start of RIFF file
+	rh->cl_pos_start = __RIFF_FTELL(f); //current file offset of stream considered as start of RIFF file
 	
 	rh->fp_read = &read_file;
 	rh->fp_seek = &seek_file;
@@ -101,13 +101,13 @@ size_t read_mem(riff_handle *rh, void *ptr, size_t size){
 }
 
 /*****************************************************************************/
-size_t seek_mem(riff_handle *rh, size_t pos){
+riff_ufs_t seek_mem(riff_handle *rh, riff_ufs_t pos){
 	return pos; //instant in memory
 }
 
 /*****************************************************************************/
 //description: see header file
-int riff_open_mem(riff_handle *rh, const void *ptr, size_t size){
+int riff_open_mem(riff_handle *rh, const void *ptr, riff_ufs_t size){
 	checkValidRiffHandle(rh);
 	
 	rh->fh = (void *)ptr;
@@ -182,8 +182,8 @@ int riff_readChunkHeader(riff_handle *rh){
 	
 	
 	//check if chunk fits into current list level and file, value could be corrupt
-	size_t cposend = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad;
-	size_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size;
+	riff_ufs_t cposend = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad;
+	riff_ufs_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size;
 	
 	if(cposend > listend){
 		if(rh->fp_printf)
@@ -335,27 +335,31 @@ int riff_readHeader(riff_handle *rh){
 	if(r != RIFF_ERROR_NONE)
 		return r;
 
-	if (rh->cl_size == 0xFFFFFFFF && !memcmp(rh->c_id, "ds64", 4)) {
-		// It's a 64-bit sized file
-		// Specification can be found at
-		// https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.2088-1-201910-I!!PDF-E.pdf
-		
-		// Buffer already used, so it can be reused
-		size_t r_ = riff_readInChunk(rh, buf, 8);
-		if (r_ != 8) {
-			if (rh->fp_printf) {
-				rh->fp_printf("ds64 chunk too small to contain any meaningful information.\n");
+	#if RIFF_64BIT_FILESIZE_SUPPORT
+
+		if (rh->cl_size == 0xFFFFFFFF && !memcmp(rh->c_id, "ds64", 4)) {
+			// It's a 64-bit sized file
+			// Specification can be found at
+			// https://www.itu.int/dms_pubrec/itu-r/rec/bs/R-REC-BS.2088-1-201910-I!!PDF-E.pdf
+			
+			// Buffer already used, so it can be reused
+			size_t r_ = riff_readInChunk(rh, buf, 8);
+			if (r_ != 8) {
+				if (rh->fp_printf) {
+					rh->fp_printf("ds64 chunk too small to contain any meaningful information.\n");
+				}
+				return RIFF_ERROR_ICSIZE;
 			}
-			return RIFF_ERROR_ICSIZE;
+			rh->cl_size = ((riff_ufs_t)convUInt32LE(buf+4) << 32) | convUInt32LE(buf);
 		}
-		rh->cl_size = ((size_t)convUInt32LE(buf+4) << 32) | convUInt32LE(buf);
-	}
+
+	#endif
 	
 	//compare with given file size
 	if(rh->size != 0){
 		if(rh->size != rh->cl_size + RIFF_CHUNK_DATA_OFFSET){
 			if(rh->fp_printf)
-				rh->fp_printf("RIFF header chunk size %d doesn't match file size %d!\n", rh->cl_size + RIFF_CHUNK_DATA_OFFSET, rh->size);
+				rh->fp_printf("RIFF header chunk size %" __RIFF_FS_FMT " doesn't match file size %" __RIFF_FS_FMT "!\n", rh->cl_size + RIFF_CHUNK_DATA_OFFSET, rh->size);
 			if(rh->size >= rh->cl_size + RIFF_CHUNK_DATA_OFFSET)
 				return RIFF_ERROR_EXDAT;
 			else
@@ -380,7 +384,7 @@ int riff_readHeader(riff_handle *rh){
 //read to memory block, returns number of successfully read bytes
 //keep track of position, do not read beyond end of chunk, pad byte is not read
 size_t riff_readInChunk(riff_handle *rh, void *to, size_t size){
-	size_t left = rh->c_size - rh->c_pos;
+	riff_ufs_t left = rh->c_size - rh->c_pos;
 	if(left < size)
 		size = left;
 	size_t n = rh->fp_read(rh, to, size);
@@ -393,7 +397,7 @@ size_t riff_readInChunk(riff_handle *rh, void *to, size_t size){
 //seek byte position in current chunk data from start of chunk data, return error on failure
 //keep track of position
 //c_pos: relative offset from chunk data start
-int riff_seekInChunk(riff_handle *rh, size_t c_pos){
+int riff_seekInChunk(riff_handle *rh, riff_ufs_t c_pos){
 	checkValidRiffHandle(rh);
 	//seeking behind last byte is valid, next read at that pos will fail
 	if(c_pos < 0  ||  c_pos > rh->c_size){
@@ -401,7 +405,7 @@ int riff_seekInChunk(riff_handle *rh, size_t c_pos){
 	}
 	rh->pos = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + c_pos;
 	rh->c_pos = c_pos;
-	size_t r = rh->fp_seek(rh, rh->pos); //seek never fails, but pos might be invalid to read from
+	riff_ufs_t r = rh->fp_seek(rh, rh->pos); //seek never fails, but pos might be invalid to read from
 	return RIFF_ERROR_NONE;
 }
 
@@ -411,11 +415,11 @@ int riff_seekInChunk(riff_handle *rh, size_t c_pos){
 int riff_seekNextChunk(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
-	size_t posnew = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad; //expected pos of following chunk
+	riff_ufs_t posnew = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad; //expected pos of following chunk
 	
-	size_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at level 0
+	riff_ufs_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at level 0
 	
-	//printf("listend %d  posnew %d\n", listend, posnew);  //debug
+	//printf("listend %" __RIFF_FS_FMT "  posnew %" __RIFF_FS_FMT "\n", listend, posnew);  //debug
 	
 	//if no more chunks in the current sub list level
 	if(listend < posnew + RIFF_CHUNK_DATA_OFFSET){
@@ -423,7 +427,7 @@ int riff_seekNextChunk(riff_handle *rh){
 		//we consider excess bytes as non critical file structure error
 		if(listend > posnew){
 			if(rh->fp_printf)
-				rh->fp_printf("%d excess bytes at pos %d at end of chunk list!\n", listend - posnew, posnew);
+				rh->fp_printf("%" __RIFF_FS_FMT " excess bytes at pos %" __RIFF_FS_FMT " at end of chunk list!\n", listend - posnew, posnew);
 			return RIFF_ERROR_EXDAT;
 		}
 		return RIFF_ERROR_EOCL;
@@ -482,9 +486,17 @@ int riff_seekLevelSub(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//according to "https://en.wikipedia.org/wiki/Resource_Interchange_File_Format" only RIFF and LIST chunk IDs can contain subchunks
-	if(memcmp(rh->c_id, "LIST", 4) != 0  && memcmp(rh->c_id, "RIFF", 4) != 0 && memcmp(rh->c_id, "BW64", 4) != 0){
+	if(memcmp(rh->c_id, "LIST", 4) != 0  && memcmp(rh->c_id, "RIFF", 4) != 0
+	#if RIFF_64BIT_FILESIZE_SUPPORT
+	&& memcmp(rh->c_id, "BW64", 4) != 0
+	#endif
+	) {
 		if(rh->fp_printf)
-			rh->fp_printf("%s() failed for chunk ID \"%s\", only RIFF or LIST chunk can contain subchunks", __func__, rh->c_id);
+			#if RIFF_64BIT_FILESIZE_SUPPORT
+				rh->fp_printf("%s() failed for chunk ID \"%s\", only RIFF, BW64 or LIST chunks can contain subchunks", __func__, rh->c_id);
+			#else
+				rh->fp_printf("%s() failed for chunk ID \"%s\", only RIFF or LIST chunks can contain subchunks", __func__, rh->c_id);
+			#endif
 		return RIFF_ERROR_ILLID;
 	}
 	
@@ -611,14 +623,14 @@ int riff_fileValidate(riff_handle *rh){
 }
 
 /*****************************************************************************/
-int32_t riff_amountOfChunksInLevel(riff_handle *rh){
+riff_sfs_t riff_amountOfChunksInLevel(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
-	int32_t counter = 0;
+	riff_sfs_t counter = 0;
 	int r;
 	//seek to start of current list
 	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
-		return -1;
+		return (riff_sfs_t)-1;
 	
 	//seek all chunks of current list level
 	while(1){
@@ -635,10 +647,10 @@ int32_t riff_amountOfChunksInLevel(riff_handle *rh){
 }
 
 /*****************************************************************************/
-int32_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id){
+riff_sfs_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id){
 	checkValidRiffHandle(rh);
 
-	int32_t counter = 0;
+	riff_sfs_t counter = 0;
 	int r;
 	//seek to start of current list
 	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)

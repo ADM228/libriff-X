@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 project(riff LANGUAGES C CXX)
 
+option(RIFF_64BIT_FILESIZE_SUPPORT "If set to TRUE, libriff will support 64-bit-sized files, filesystems as well as (sorta) ds64 files. May be *slightly* slower. Default is FALSE as most RIFF files only have 32-bit sizes." FALSE)
 option(RIFF_STATIC_LIBRARIES "If set to TRUE, will link libriff as a static library, dynamic otherwise. Default value is NOT(BUILD_SHARED_LIBS)." $<NOT:${BUILD_SHARED_LIBS}>)
 option(RIFF_CXX_WRAPPER "If set to TRUE, will enable the C++ wrapper for libriff. Default is FALSE." FALSE)
 option(RIFF_CXX_STD_FILESYSTEM_PATH "If set to TRUE, will enable support for std::filesystem::path arguments in the C++ wrapper for libriff. It is a C++17 feature and requires C++17 support in the host program, otherwise it only requires C++11. Does nothing without RIFF_CXX_WRAPPER set. Default is TRUE." TRUE)

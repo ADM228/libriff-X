@@ -129,7 +129,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        inline RIFFHandle (std::FILE & file, size_t size = 0) : RIFFHandle() {openCFILE(file, size);};
+        inline RIFFHandle (std::FILE & file, riff_ufs_t size = 0) : RIFFHandle() {openCFILE(file, size);};
         /**
          * @brief Construct a new RIFFHandle object and open a RIFF file from an existing std::fstream object.
          * 
@@ -140,7 +140,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        inline RIFFHandle (std::fstream & file, size_t size = 0) : RIFFHandle() {openFstream(file, size);};
+        inline RIFFHandle (std::fstream & file, riff_ufs_t size = 0) : RIFFHandle() {openFstream(file, size);};
         /**
          * @brief Construct a new RIFFHandle object and open RIFF data from a memory pointer.
          * 
@@ -149,7 +149,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        inline RIFFHandle (const void * mem_ptr, size_t size = 0) : RIFFHandle() {openMemory(mem_ptr, size);};
+        inline RIFFHandle (const void * mem_ptr, riff_ufs_t size = 0) : RIFFHandle() {openMemory(mem_ptr, size);};
 
         /**
          * @brief Destroy the RIFFHandle object.
@@ -246,7 +246,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        int openCFILE (std::FILE & file, size_t size = 0);
+        int openCFILE (std::FILE & file, riff_ufs_t size = 0);
         /**
          * @brief Open a RIFF file from an existing std::fstream object.
          * 
@@ -257,7 +257,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        int openFstream (std::fstream & file, size_t size = 0);
+        int openFstream (std::fstream & file, riff_ufs_t size = 0);
         /**
          * @brief Get RIFF data from a memory pointer.
          * 
@@ -266,7 +266,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        int openMemory (const void * mem_ptr, size_t size = 0);
+        int openMemory (const void * mem_ptr, riff_ufs_t size = 0);
 
         /**
          * @brief Closes the file.
@@ -312,7 +312,7 @@ class RIFFHandle {
          * 
          * @return RIFF error code.
          */
-        inline int seekInChunk (size_t size) {return __latestError = riff_seekInChunk (rh, size);};
+        inline int seekInChunk (riff_ufs_t size) {return __latestError = riff_seekInChunk (rh, size);};
 
         ///@}
 
@@ -517,9 +517,9 @@ class RIFFHandle {
 
         int __latestError = RIFF_ERROR_NONE;
 
-        int openFstreamCommon (size_t);
+        int openFstreamCommon (riff_ufs_t);
         void setAutomaticFstream ();
-        size_t detectFstreamSize (bool);
+        riff_ufs_t detectFstreamSize (bool);
 
         void die ();
         void reset ();
