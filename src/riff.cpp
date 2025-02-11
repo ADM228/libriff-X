@@ -1,3 +1,12 @@
+/*
+    C++ wrapper for libriff
+
+    (C) 2023-2025 alexmush
+    License: zlib
+
+    The C++ libriff wrapper is a memory-safe, OOP-compliant wrapper around the C-based libriff. It adds support for std::ifstream/ofstream, automatic allocation of filestreams (both C-based and if/ofstream) from filenames/filepaths, as well as some additional functions for reading/writing entire chunks at once and setting chunk types/IDs.
+*/
+
 #ifndef __RIFF_CPP__
 #define __RIFF_CPP__
 

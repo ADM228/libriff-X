@@ -1,3 +1,10 @@
+/*
+libriff
+
+Author/copyright: Markus Wolf, alexmush
+License: zlib (https://opensource.org/licenses/Zlib)
+*/
+
 // take care: whenever we call rh->fp_read() or rh->fp_seek()
 //   we must adjust rh->c_pos and rh->pos
 //   => to simplify user wrappers we update the positions outside
