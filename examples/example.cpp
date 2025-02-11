@@ -49,10 +49,8 @@ void test_traverse_rec(RIFF::RIFFHandle & rh){
 	while(1){
 		std::cout << indent << rh().c_id << ": " <<  rh().c_size << " [" << rh().c_pos_start << ".." << rh().c_pos_start + 8 + rh().c_size + rh().pad - 1 << "]" << std::endl;
 		
-		//if current chunk not a chunk list
-		if(memcmp(rh().c_id, "LIST", 4) != 0  &&  memcmp(rh().c_id, "RIFF", 4) != 0){
-		}
-		else {
+		//if current chunk is a chunk list
+		if (rh.canBeChunkList()){
 			//getchar(); //uncomment to press ENTER to continue after a printed chunk
 			{
 				err = rh.seekLevelSub();

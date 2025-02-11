@@ -527,7 +527,7 @@ int riff_seekLevelSub(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//according to "https://en.wikipedia.org/wiki/Resource_Interchange_File_Format" only RIFF and LIST chunk IDs can contain subchunks
-	if(riff_canBeChunkList(rh)) {
+	if(!riff_canBeChunkList(rh)) {
 		if(rh->fp_printf)
 			#if RIFF_64BIT_FILESIZE_SUPPORT
 				rh->fp_printf("%s() failed for chunk ID \"%s\", only RIFF, BW64 or LIST chunks can contain subchunks", __func__, rh->c_id);
@@ -630,7 +630,7 @@ int riff_recursiveLevelValidate(riff_handle *rh){
 	int r = RIFF_ERROR_NONE;
 	while (r == RIFF_ERROR_NONE) {
 		r = riff_seekNextChunk(rh);
-		if (!riff_canBeChunkList(rh)) { // If the chunk can contain subchunks
+		if (riff_canBeChunkList(rh)) { // If the chunk can contain subchunks
 			r = riff_seekLevelSub(rh);
 			if (r != RIFF_ERROR_NONE) return r;
 			r = riff_recursiveLevelValidate(rh);
@@ -639,6 +639,8 @@ int riff_recursiveLevelValidate(riff_handle *rh){
 	}
 	if (r == RIFF_ERROR_EOCL) {
 		// End of chunk list, time to come back
+		if (rh->ls_level == 0) return RIFF_ERROR_NONE;
+		// Level is not 0, we can come back
 		return riff_levelParent(rh);
 	}
 	// Otherwise, some shit occured

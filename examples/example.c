@@ -46,10 +46,8 @@ void test_traverse_rec(riff_handle *rh){
 	while(1){
 		printf("%s%s: %zu [%zu..%zu]\n", indent, rh->c_id, rh->c_size, rh->c_pos_start,  rh->c_pos_start + 8 + rh->c_size + rh->pad - 1);
 		
-		//if current chunk not a chunk list
-		if(memcmp(rh->c_id, "LIST", 4) != 0  &&  memcmp(rh->c_id, "RIFF", 4) != 0){
-		}
-		else {
+		//if current chunk is a chunk list
+		if (riff_canBeChunkList(rh)) {
 			//getchar(); //uncomment to press ENTER to continue after a printed chunk
 			{
 				err = riff_seekLevelSub(rh);
@@ -140,7 +138,7 @@ void test(FILE *f){
 		printf("Error: %s\n", riff_errorToString(r));
 	printf("Current pos: %zu (expected: %zu)\n", rh->pos, rh->cl_pos_start + RIFF_HEADER_SIZE + RIFF_CHUNK_DATA_OFFSET);
 	printf("Current list level: %d\n", rh->ls_level);
-	
+
 	
 	riff_handleFree(rh);
 	
