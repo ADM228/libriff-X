@@ -280,6 +280,58 @@ std::vector<uint8_t> RIFFHandle::readChunkData() {
 	return outVec;
 }
 
+// This is reimplemented in C++ to capture the latest error
+riff_sfs_t RIFFHandle::amountOfChunksInLevel () {
+	if(rh == NULL) {
+		__latestError = RIFF_ERROR_INVALID_HANDLE;
+		return -1;
+	}
+
+	riff_sfs_t counter = 0;
+	//seek to start of current list
+	if ((__latestError = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
+		return (riff_sfs_t)-1;
+	
+	//seek all chunks of current list level
+	while (__latestError == RIFF_ERROR_NONE){
+		counter++;
+		__latestError = riff_seekNextChunk(rh);
+	}
+	if (__latestError == RIFF_ERROR_EOCL){
+		__latestError = RIFF_ERROR_NONE;
+		// Just the end of the level
+		return counter;
+	}
+	// Otherwise, an error occured
+	return (riff_sfs_t)-1;
+};
+
+// This is reimplemented in C++ to capture the latest error
+riff_sfs_t RIFFHandle::amountOfChunksInLevelWithID (const char * id) {
+	if(rh == NULL) {
+		__latestError = RIFF_ERROR_INVALID_HANDLE;
+		return -1;
+	}
+
+	riff_sfs_t counter = 0;
+	//seek to start of current list
+	if ((__latestError = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
+		return (riff_sfs_t)-1;
+	
+	//seek all chunks of current list level
+	while (__latestError == RIFF_ERROR_NONE){
+		if (!memcmp(rh->c_id, id, 4)) counter++;
+		__latestError = riff_seekNextChunk(rh);
+	}
+	if (__latestError == RIFF_ERROR_EOCL){
+		__latestError = RIFF_ERROR_NONE;
+		// Just the end of the level
+		return counter;
+	}
+	// Otherwise, an error occured
+	return (riff_sfs_t)-1;
+};
+
 }   // namespace RIFF
 
 #endif  // __RIFF_CPP__

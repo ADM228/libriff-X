@@ -455,7 +455,7 @@ class RIFFHandle {
 		 *
 		 * @return The amount of chunks in the current level, or -1 if an error occured.
 		 */
-		inline int32_t amountOfChunksInLevel () {return riff_amountOfChunksInLevel(rh);};
+		riff_sfs_t amountOfChunksInLevel ();
 
 		/**
 		 * @brief Count chunks with a certain ID in current level.
@@ -468,7 +468,7 @@ class RIFFHandle {
 		 *
 		 * @return The amount of chunks with the id in the current level, or -1 if an error occured.
 		 */
-		inline int32_t amountOfChunksInLevelWithID (const char * id) {return riff_amountOfChunksInLevelWithID(rh, id);};
+		riff_sfs_t amountOfChunksInLevelWithID (const char * id);
 
 		/**
 		 * @brief Get a riff level stack entry for a specified level.
