@@ -479,7 +479,7 @@ class RIFFHandle {
 		 * @param level The level to get the entry of.
 		 * @return The pointer to riff level stack entry.
 		 */
-		riff_levelStackEntry * getLevelStackEntry(int level) {return riff_getLevelStackEntry(rh, level);};
+		riff_levelStackEntry * getLevelStackEntry (int level) {return riff_getLevelStackEntry(rh, level);};
 
 		///@}
 
