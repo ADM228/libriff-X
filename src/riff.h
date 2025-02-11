@@ -13,25 +13,25 @@ Special chunks (e.g. "LIST") can contain a nested sub list of chunks
 Example structure of RIFF file:
 
 chunk list start ("RIFF") - ID,size,type
-  type (of parent chunk header)
-  chunk block - list level 0
-  chunk block ("LIST") - level 0 - ID,size,type
-    type (of parent chunk header)
-    chunk block - level 1
-    chunk block - level 1
-  chunk block - level 0
+	type (of parent chunk header)
+	chunk block - list level 0
+	chunk block ("LIST") - level 0 - ID,size,type
+		type (of parent chunk header)
+		chunk block - level 1
+		chunk block - level 1
+	chunk block - level 0
 
 
 Usage:
 Use a default open-function (file, mem) or create your own
-  The required function pointers for reading and seeking are set here
-  When creating your own open-function, take a look at the default function code as template
+	The required function pointers for reading and seeking are set here
+	When creating your own open-function, take a look at the default function code as template
 After the file is opened we are in the first chunk at list level 0
- You can freely read and seek within the data of the current chunk
- Use riff_nextChunk() to go to the first data byte of the next chunk (chunk header is read already then)
+	You can freely read and seek within the data of the current chunk
+	Use riff_nextChunk() to go to the first data byte of the next chunk (chunk header is read already then)
 If the current chunk contains a list of sub level chunks:
- Call riff_seekLevelSub() to be positioned at the first data byte of the first chunk in the sub list level
- Call riff_levelParent() to leave the sub list without changing the file position
+	Call riff_seekLevelSub() to be positioned at the first data byte of the first chunk in the sub list level
+	Call riff_levelParent() to leave the sub list without changing the file position
 Read members of the riff_handle to get all info about current file position, current chunk, etc.
 
 Due to the size fields being 4 bytes, this library may not work for RIFF files larger than 2GB.
