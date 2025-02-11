@@ -322,6 +322,14 @@ class RIFFHandle {
 		 */
 
 		/**
+		 * @brief Tells if the current chunk is the last one in the level
+		 *
+		 * @note Technically speaking, using this as a check whether to execute seekNextChunk() is wasteful, since the latter is performing the exact same check, returning RIFF_ERROR_EOCL if it didn't go through.
+		 *
+		 * @return @c true if the current chunk is the last one in the level, @c false if the chunk isn't the last one in the level or something went wrong.
+		 */
+		inline bool isLastChunkInLevel () {return riff_isLastChunkInLevel (rh);};
+		/**
 		 * @brief Seek to start of next chunk within current level.
 		 * 
 		 * ID and size are read automatically.
@@ -359,6 +367,12 @@ class RIFFHandle {
 		 * @{
 		 */
 
+		/**
+		 * @brief Tells if the current chunk can be a chunk list
+		 *
+		 * @return @c true if the current chunk can be a chunk list, @c false if the chunk isn't a chunk list or something went wrong.
+		 */
+		inline bool canBeChunkList () {return riff_canBeChunkList (rh);};
 		/**
 		 * @brief Go to sub level chunk.
 		 * 

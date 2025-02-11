@@ -443,6 +443,16 @@ int riff_seekInChunk(riff_handle *rh, riff_ufs_t c_pos);
  * @{
  */
 /**
+ * @brief Tells if the current chunk is the last one in the level
+ *
+ * @param rh The riff_handle to use.
+ * 
+ * @note Technically speaking, using this as a check whether to execute riff_seekNextChunk() is wasteful, since the latter is performing the exact same check, returning RIFF_ERROR_EOCL if it didn't go through.
+ *
+ * @return @c true if the current chunk is the last one in the level, @c false if the chunk isn't the last one in the level or something went wrong.
+ */
+bool riff_isLastChunkInLevel(riff_handle *rh);
+/**
  * @brief Seek to start of next chunk within current level.
  * 
  * ID and size are read automatically.

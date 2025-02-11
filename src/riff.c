@@ -416,6 +416,29 @@ int riff_seekInChunk(riff_handle *rh, riff_ufs_t c_pos){
 	return RIFF_ERROR_NONE;
 }
 
+/*****************************************************************************/
+//description: see header file
+// this function is not used in internal functions due to
+// riff_seekNextChunk() already executing it, resulting in
+// a double operation and a waste of time
+bool riff_isLastChunkInLevel(riff_handle *rh) {
+	checkValidRiffHandleWithRetVal(rh, false);
+
+	riff_ufs_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size;
+	riff_ufs_t posnext = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad;
+
+	if(listend < posnext + RIFF_CHUNK_DATA_OFFSET){
+		//there shouldn't be any pad bytes at the list end, since the containing chunks should be padded to even number of bytes already
+		//we consider excess bytes as non critical file structure error
+		if(listend > posnext){
+			if(rh->fp_printf)
+				rh->fp_printf("%" __RIFF_FS_FMT " excess bytes at pos %" __RIFF_FS_FMT " at end of chunk list!\n", listend - posnext, posnext);
+		}
+		return true;
+	}
+	return false;
+}
+
 
 /*****************************************************************************/
 //description: see header file
@@ -424,7 +447,7 @@ int riff_seekNextChunk(riff_handle *rh){
 
 	riff_ufs_t posnew = rh->c_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->c_size + rh->pad; //expected pos of following chunk
 	
-	riff_ufs_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at level 0
+	riff_ufs_t listend = rh->cl_pos_start + RIFF_CHUNK_DATA_OFFSET + rh->cl_size; //at current level
 	
 	//printf("listend %" __RIFF_FS_FMT "  posnew %" __RIFF_FS_FMT "\n", listend, posnew);  //debug
 	
