@@ -514,7 +514,7 @@ int riff_seekLevelStart(riff_handle *rh){
 bool riff_canBeChunkList(riff_handle * rh) {
 	checkValidRiffHandleWithRetVal(rh, false);
 
-	return !(memcmp(rh->c_id, "LIST", 4) != 0  && memcmp(rh->c_id, "RIFF", 4) != 0
+	return !(memcmp(rh->c_id, "LIST", 4) != 0 && memcmp(rh->c_id, "RIFF", 4) != 0
 	#if RIFF_64BIT_FILESIZE_SUPPORT
 	&& memcmp(rh->c_id, "BW64", 4) != 0
 	#endif
@@ -612,31 +612,24 @@ int riff_levelValidate(riff_handle *rh){
 		return r;
 	
 	//seek all chunks of current list level
-	while(1){
+	while (r == RIFF_ERROR_NONE) {
 		r = riff_seekNextChunk(rh);
-		if(r != RIFF_ERROR_NONE){
-			if(r == RIFF_ERROR_EOCL) //just end of list
-				break;
-			//error occured, was probably printed already
-			return r;
-		}
 	}
-	return RIFF_ERROR_NONE;
+	if (r == RIFF_ERROR_EOCL){
+		// Just the end of the level
+		return RIFF_ERROR_NONE;
+	}
+	// Otherwise, an error occured
+	return r;
 }
 
 /*****************************************************************************/
 
 // Internal function, do not use
 int riff_recursiveLevelValidate(riff_handle *rh){
-	int r;
-	while (1) {
+	int r = RIFF_ERROR_NONE;
+	while (r == RIFF_ERROR_NONE) {
 		r = riff_seekNextChunk(rh);
-		if (r != RIFF_ERROR_NONE) {
-			if (r == RIFF_ERROR_EOCL) {
-				// End of chunk list, time to come back
-				return riff_levelParent(rh);
-			} else return r; // Otherwise, some shit occured
-		}
 		if (!riff_canBeChunkList(rh)) { // If the chunk can contain subchunks
 			r = riff_seekLevelSub(rh);
 			if (r != RIFF_ERROR_NONE) return r;
@@ -644,7 +637,12 @@ int riff_recursiveLevelValidate(riff_handle *rh){
 			if (r != RIFF_ERROR_NONE) return r;
 		}
 	}
-	return RIFF_ERROR_NONE;
+	if (r == RIFF_ERROR_EOCL) {
+		// End of chunk list, time to come back
+		return riff_levelParent(rh);
+	}
+	// Otherwise, some shit occured
+	return r;
 }
 
 int riff_fileValidate(riff_handle *rh){
@@ -666,21 +664,20 @@ riff_sfs_t riff_amountOfChunksInLevel(riff_handle *rh){
 	riff_sfs_t counter = 0;
 	int r;
 	//seek to start of current list
-	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
+	if ((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
 		return (riff_sfs_t)-1;
 	
 	//seek all chunks of current list level
-	while(1){
+	while (r == RIFF_ERROR_NONE){
 		counter++;
 		r = riff_seekNextChunk(rh);
-		if(r != RIFF_ERROR_NONE){
-			if(r == RIFF_ERROR_EOCL)  //just end of list
-				break;
-			//error occured
-			return -1;
-		}
 	}
-	return counter;
+	if (r == RIFF_ERROR_EOCL){
+		// Just the end of the level
+		return counter;
+	}
+	// Otherwise, an error occured
+	return -1;
 }
 
 /*****************************************************************************/
@@ -688,23 +685,22 @@ riff_sfs_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id){
 	checkValidRiffHandleWithRetVal(rh, -1);
 
 	riff_sfs_t counter = 0;
-	int r;
+	int r = RIFF_ERROR_NONE;
 	//seek to start of current list
 	if((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
 		return -1;
 	
 	//seek all chunks of current list level
-	while(1){
+	while(r == RIFF_ERROR_NONE){
 		if (!memcmp(rh->c_id, id, 4)) counter++;
 		r = riff_seekNextChunk(rh);
-		if(r != RIFF_ERROR_NONE){
-			if(r == RIFF_ERROR_EOCL) //just end of list
-				break;
-			//error occured
-			return -1;
-		}
 	}
-	return counter;
+	if (r == RIFF_ERROR_EOCL){
+		// Just the end of the level
+		return counter;
+	}
+	// Otherwise, an error occured
+	return -1;
 }
 
 /*****************************************************************************/
