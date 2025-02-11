@@ -486,6 +486,17 @@ int riff_seekLevelStart(riff_handle *rh){
 	return r;
 }
 
+/*****************************************************************************/
+//description: see header file
+bool riff_canBeChunkList(riff_handle * rh) {
+	checkValidRiffHandleWithRetVal(rh, false);
+
+	return !(memcmp(rh->c_id, "LIST", 4) != 0  && memcmp(rh->c_id, "RIFF", 4) != 0
+	#if RIFF_64BIT_FILESIZE_SUPPORT
+	&& memcmp(rh->c_id, "BW64", 4) != 0
+	#endif
+	);
+}
 
 /*****************************************************************************/
 //description: see header file
@@ -493,11 +504,7 @@ int riff_seekLevelSub(riff_handle *rh){
 	checkValidRiffHandle(rh);
 
 	//according to "https://en.wikipedia.org/wiki/Resource_Interchange_File_Format" only RIFF and LIST chunk IDs can contain subchunks
-	if(memcmp(rh->c_id, "LIST", 4) != 0  && memcmp(rh->c_id, "RIFF", 4) != 0
-	#if RIFF_64BIT_FILESIZE_SUPPORT
-	&& memcmp(rh->c_id, "BW64", 4) != 0
-	#endif
-	) {
+	if(riff_canBeChunkList(rh)) {
 		if(rh->fp_printf)
 			#if RIFF_64BIT_FILESIZE_SUPPORT
 				rh->fp_printf("%s() failed for chunk ID \"%s\", only RIFF, BW64 or LIST chunks can contain subchunks", __func__, rh->c_id);
@@ -607,7 +614,7 @@ int riff_recursiveLevelValidate(riff_handle *rh){
 				return riff_levelParent(rh);
 			} else return r; // Otherwise, some shit occured
 		}
-		if (!(memcmp(rh->c_id, "LIST", 4) != 0 && memcmp(rh->c_id, "RIFF", 4) != 0 && memcmp(rh->c_id, "BW64", 4) != 0)) { // If the chunk can contain subchunks
+		if (!riff_canBeChunkList(rh)) { // If the chunk can contain subchunks
 			r = riff_seekLevelSub(rh);
 			if (r != RIFF_ERROR_NONE) return r;
 			r = riff_recursiveLevelValidate(rh);
@@ -631,7 +638,7 @@ int riff_fileValidate(riff_handle *rh){
 
 /*****************************************************************************/
 riff_sfs_t riff_amountOfChunksInLevel(riff_handle *rh){
-	checkValidRiffHandle(rh);
+	checkValidRiffHandleWithRetVal(rh, -1);
 
 	riff_sfs_t counter = 0;
 	int r;
@@ -655,7 +662,7 @@ riff_sfs_t riff_amountOfChunksInLevel(riff_handle *rh){
 
 /*****************************************************************************/
 riff_sfs_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id){
-	checkValidRiffHandle(rh);
+	checkValidRiffHandleWithRetVal(rh, -1);
 
 	riff_sfs_t counter = 0;
 	int r;

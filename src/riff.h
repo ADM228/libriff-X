@@ -62,6 +62,7 @@ Due to the size fields being 4 bytes, this library may not work for RIFF files l
 #endif
 
 #include <stddef.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -487,6 +488,15 @@ int riff_seekLevelStart(riff_handle *rh);
  * @name Level seeking functions
  * @{
  */
+
+/**
+ * @brief Tells if the current chunk can be a chunk list
+ *
+ * @param rh The riff_handle to use.
+ *
+ * @return @c true if the current chunk can be a chunk list, @c false if the chunk isn't a chunk list or something went wrong.
+ */
+bool riff_canBeChunkList(riff_handle *rh);
 
 /**
  * @brief Go to sub level, load first chunk.
