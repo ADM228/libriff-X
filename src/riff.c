@@ -637,7 +637,7 @@ int riff_recursiveLevelValidate(riff_handle *rh) {
 			if (r != RIFF_ERROR_NONE) return r;
 		}
 	}
-	if (r == RIFF_ERROR_EOCL) {
+	if (r == RIFF_ERROR_EOCL || r == RIFF_ERROR_EXDAT) {
 		// End of chunk list, time to come back
 		if (rh->ls_level == 0) return RIFF_ERROR_NONE;
 		// Level is not 0, we can come back
@@ -667,14 +667,14 @@ riff_sfs_t riff_amountOfChunksInLevel(riff_handle *rh) {
 	int r;
 	//seek to start of current list
 	if ((r = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
-		return (riff_sfs_t)-1;
+		return -1;
 	
 	//seek all chunks of current list level
 	while (r == RIFF_ERROR_NONE) {
 		counter++;
 		r = riff_seekNextChunk(rh);
 	}
-	if (r == RIFF_ERROR_EOCL) {
+	if (r == RIFF_ERROR_EOCL || r == RIFF_ERROR_EXDAT) {
 		// Just the end of the level
 		return counter;
 	}
@@ -697,7 +697,7 @@ riff_sfs_t riff_amountOfChunksInLevelWithID(riff_handle *rh, const char * id) {
 		if (!memcmp(rh->c_id, id, 4)) counter++;
 		r = riff_seekNextChunk(rh);
 	}
-	if (r == RIFF_ERROR_EOCL) {
+	if (r == RIFF_ERROR_EOCL || r == RIFF_ERROR_EXDAT) {
 		// Just the end of the level
 		return counter;
 	}

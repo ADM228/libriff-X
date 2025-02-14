@@ -290,7 +290,7 @@ riff_sfs_t RIFFHandle::amountOfChunksInLevel () {
 	riff_sfs_t counter = 0;
 	//seek to start of current list
 	if ((__latestError = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
-		return (riff_sfs_t)-1;
+		return -1;
 	
 	//seek all chunks of current list level
 	while (__latestError == RIFF_ERROR_NONE){
@@ -301,9 +301,12 @@ riff_sfs_t RIFFHandle::amountOfChunksInLevel () {
 		__latestError = RIFF_ERROR_NONE;
 		// Just the end of the level
 		return counter;
+	} else if (__latestError == RIFF_ERROR_EXDAT){
+		// Just the end of the level, but with some extra data - keep the error
+		return counter;
 	}
 	// Otherwise, an error occured
-	return (riff_sfs_t)-1;
+	return -1;
 };
 
 // This is reimplemented in C++ to capture the latest error
@@ -316,7 +319,7 @@ riff_sfs_t RIFFHandle::amountOfChunksInLevelWithID (const char * id) {
 	riff_sfs_t counter = 0;
 	//seek to start of current list
 	if ((__latestError = riff_seekLevelStart(rh)) != RIFF_ERROR_NONE)
-		return (riff_sfs_t)-1;
+		return -1;
 	
 	//seek all chunks of current list level
 	while (__latestError == RIFF_ERROR_NONE){
@@ -327,9 +330,12 @@ riff_sfs_t RIFFHandle::amountOfChunksInLevelWithID (const char * id) {
 		__latestError = RIFF_ERROR_NONE;
 		// Just the end of the level
 		return counter;
+	} else if (__latestError == RIFF_ERROR_EXDAT){
+		// Just the end of the level, but with some extra data - keep the error
+		return counter;
 	}
 	// Otherwise, an error occured
-	return (riff_sfs_t)-1;
+	return -1;
 };
 
 }   // namespace RIFF
